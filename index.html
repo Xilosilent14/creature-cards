@@ -167,6 +167,7 @@
     <script src="js/main.js"></script>
     <script>
         if(typeof OTBConfig!=='undefined'){const h=document.getElementById('hub-link');if(h)h.href=OTBConfig.getHubUrl();}
+        if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
     </script>
 </body>
 </html>
