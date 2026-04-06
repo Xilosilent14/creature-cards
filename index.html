@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>Creature Cards — OTB Games</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="css/shared/design-system.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Splash -->
+    <div id="splash" class="otb-splash">
+        <div class="otb-splash-badge">OTB Games</div>
+        <div style="font-size:3rem;">🃏</div>
+        <div class="otb-splash-title" style="text-shadow: 0 0 20px rgba(245,158,11,0.5);">CREATURE CARDS</div>
+        <div class="otb-splash-subtitle">Loading creatures...</div>
+        <div class="otb-splash-loader"><div class="otb-splash-loader-fill"></div></div>
+    </div>
+
+    <!-- Title Screen -->
+    <div id="screen-title" class="screen">
+        <div class="title-content">
+            <div class="otb-badge" style="position:absolute;top:10px;left:50%;transform:translateX(-50%);">OTB Games</div>
+            <h1 class="game-title">CREATURE<br><span class="title-accent">CARDS</span></h1>
+            <button class="otb-btn otb-btn-primary otb-btn-large" id="btn-play" aria-label="Play Game">🃏 Play</button>
+            <div class="title-row">
+                <button class="otb-btn otb-btn-secondary" id="btn-collection" aria-label="View Collection">Collection</button>
+                <button class="otb-btn otb-btn-secondary" id="btn-deck" aria-label="Build Deck">Deck</button>
+            </div>
+            <div class="title-row">
+                <button class="otb-btn otb-btn-small" id="btn-settings" aria-label="Settings">Settings</button>
+                <a id="hub-link" href="#" class="otb-btn otb-btn-small" style="opacity:0.5;text-decoration:none;" aria-label="Return to Hub">🎮 Hub</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collection Screen -->
+    <div id="screen-collection" class="screen">
+        <div class="screen-header">
+            <button class="otb-btn otb-btn-small" id="btn-coll-back" aria-label="Back">Back</button>
+            <h2>Collection</h2>
+        </div>
+        <div class="collection-count" id="coll-count">0 / 30</div>
+        <div class="collection-tabs" id="coll-tabs"></div>
+        <div class="collection-grid" id="coll-grid"></div>
+    </div>
+
+    <!-- Deck Builder Screen -->
+    <div id="screen-deck" class="screen" style="flex-direction:column;">
+        <div class="screen-header">
+            <button class="otb-btn otb-btn-small" id="btn-deck-back" aria-label="Back">Back</button>
+            <h2>Your Team</h2>
+            <button class="otb-btn otb-btn-small" id="btn-auto-fill" aria-label="Auto Fill Deck">Auto Fill</button>
+        </div>
+        <div class="deck-slots" id="deck-slots"></div>
+        <div class="collection-grid" id="deck-grid" style="flex:1;overflow-y:auto;padding:12px;"></div>
+    </div>
+
+    <!-- Map Screen -->
+    <div id="screen-map" class="screen">
+        <div class="screen-header">
+            <button class="otb-btn otb-btn-small" id="btn-map-back" aria-label="Back">Back</button>
+            <h2>Battle Map</h2>
+        </div>
+        <div class="map-content" id="map-zones"></div>
+    </div>
+
+    <!-- Battle Screen -->
+    <div id="screen-battle" class="screen">
+        <div class="battle-area">
+            <div class="battle-creatures">
+                <div class="battle-creature" id="player-creature">
+                    <div class="battle-creature-emoji" id="player-emoji"></div>
+                    <div class="battle-creature-name" id="player-name"></div>
+                    <div class="battle-type-badge" id="player-type"></div>
+                    <div class="battle-hp-bar"><div class="battle-hp-fill" id="player-hp"></div></div>
+                    <div class="battle-hp-text" id="player-hp-text"></div>
+                </div>
+                <div class="battle-vs">VS</div>
+                <div class="battle-creature" id="opp-creature">
+                    <div class="battle-creature-emoji" id="opp-emoji"></div>
+                    <div class="battle-creature-name" id="opp-name"></div>
+                    <div class="battle-type-badge" id="opp-type"></div>
+                    <div class="battle-hp-bar"><div class="battle-hp-fill" id="opp-hp"></div></div>
+                    <div class="battle-hp-text" id="opp-hp-text"></div>
+                </div>
+            </div>
+            <div class="battle-log" id="battle-log"></div>
+        </div>
+        <div class="question-area" id="question-area" style="display:none;">
+            <div class="question-text" id="q-text"></div>
+            <div class="answer-grid" id="answer-grid"></div>
+        </div>
+        <div class="battle-actions" id="battle-actions">
+            <button class="otb-btn otb-btn-primary" id="btn-attack" aria-label="Attack">⚔️ Attack</button>
+            <button class="otb-btn otb-btn-secondary" id="btn-ability" aria-label="Use Ability">✨ Ability</button>
+        </div>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="screen-results" class="screen">
+        <div class="results-content">
+            <h2 class="results-title" id="results-title"></h2>
+            <div class="results-card-reward" id="results-reward" style="display:none;"></div>
+            <div class="results-stats otb-panel" id="results-stats"></div>
+            <div style="font-family:var(--otb-font-heading);color:var(--game-accent);" id="results-xp"></div>
+            <div class="results-buttons">
+                <button class="otb-btn otb-btn-primary" id="btn-next-battle" aria-label="Next Battle">Next Battle</button>
+                <button class="otb-btn otb-btn-secondary" id="btn-to-map" aria-label="Back to Map">Map</button>
+                <button class="otb-btn otb-btn-small" id="btn-to-home" aria-label="Home">Home</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pack Opening Screen -->
+    <div id="screen-pack" class="screen" style="align-items:center;justify-content:center;background:var(--otb-bg-primary);">
+        <div style="text-align:center;">
+            <h2 style="font-family:var(--otb-font-heading);color:var(--otb-coin);margin-bottom:16px;" id="pack-title">Card Pack!</h2>
+            <div class="pack-cards" id="pack-cards"></div>
+            <button class="otb-btn otb-btn-primary" id="btn-pack-done" style="margin-top:16px;" aria-label="Done">Done</button>
+        </div>
+    </div>
+
+    <!-- Settings Screen -->
+    <div id="screen-settings" class="screen">
+        <div class="screen-header">
+            <button class="otb-btn otb-btn-small" id="btn-settings-back" aria-label="Back">Back</button>
+            <h2>Settings</h2>
+        </div>
+        <div class="settings-content">
+            <div class="otb-settings-group">
+                <div class="otb-settings-item on" id="setting-sfx" data-setting="sfx">
+                    <div class="otb-settings-item-info">
+                        <span class="otb-settings-icon">🔊</span>
+                        <div><div class="otb-settings-label">Sound Effects</div></div>
+                    </div>
+                    <div class="otb-toggle-track on"><div class="otb-toggle-thumb"></div></div>
+                </div>
+                <div class="otb-settings-item on" id="setting-music" data-setting="music">
+                    <div class="otb-settings-item-info">
+                        <span class="otb-settings-icon">🎵</span>
+                        <div><div class="otb-settings-label">Music</div></div>
+                    </div>
+                    <div class="otb-toggle-track on"><div class="otb-toggle-thumb"></div></div>
+                </div>
+            </div>
+            <div class="otb-about">
+                <div class="otb-about-text">Part of the OTB Games family</div>
+                <div class="otb-about-version">Creature Cards v1.0</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/math-data.js"></script>
+    <script src="js/reading-data.js"></script>
+    <script src="js/creature-data.js"></script>
+    <script src="js/question-bridge.js"></script>
+    <script src="js/battle-engine.js"></script>
+    <script src="js/collection.js"></script>
+    <script src="js/progress.js"></script>
+    <script src="js/otb-config.js"></script>
+    <script src="js/ecosystem.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        if(typeof OTBConfig!=='undefined'){const h=document.getElementById('hub-link');if(h)h.href=OTBConfig.getHubUrl();}
+    </script>
+</body>
+</html>
