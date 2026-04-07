@@ -8,6 +8,53 @@
     let battleAction = null;
     let questionStartTime = 0;
 
+    // === BATTLE ANIMATION HELPERS ===
+    const TYPE_COLORS = {
+        ember: '#e8592a', tidal: '#2196F3', terra: '#4CAF50',
+        spark: '#FFD600', shadow: '#7E57C2'
+    };
+
+    function playBattleAnimation(selector, animClass, duration) {
+        const el = document.querySelector(selector);
+        if (!el) return;
+        el.classList.remove(animClass);
+        void el.offsetWidth; // force reflow for re-trigger
+        el.classList.add(animClass);
+        setTimeout(() => el.classList.remove(animClass), duration);
+    }
+
+    function spawnAttackParticles(selector, color, count) {
+        const container = document.querySelector(selector);
+        if (!container) return;
+        container.style.position = 'relative';
+        for (let i = 0; i < count; i++) {
+            const p = document.createElement('div');
+            p.className = 'attack-particle';
+            p.style.width = p.style.height = (6 + Math.random() * 8) + 'px';
+            p.style.background = color;
+            p.style.left = (40 + Math.random() * 20) + '%';
+            p.style.top = (30 + Math.random() * 40) + '%';
+            p.style.setProperty('--px', (Math.random() * 60 - 30) + 'px');
+            p.style.setProperty('--py', (Math.random() * 60 - 30) + 'px');
+            container.appendChild(p);
+            setTimeout(() => p.remove(), 500);
+        }
+    }
+
+    function showDamageNumber(selector, text, className) {
+        const container = document.querySelector(selector);
+        if (!container) return;
+        container.style.position = 'relative';
+        const num = document.createElement('div');
+        num.className = 'damage-number' + (className ? ' ' + className : '');
+        num.textContent = text;
+        num.style.left = '50%';
+        num.style.top = '20%';
+        num.style.transform = 'translateX(-50%)';
+        container.appendChild(num);
+        setTimeout(() => num.remove(), 800);
+    }
+
     const ZONES = [
         { id: 'ember',  name: 'Ember Fields',  type: 'ember',  icon: '🔥', cssClass: 'zone-ember' },
         { id: 'tidal',  name: 'Tidal Shores',  type: 'tidal',  icon: '💧', cssClass: 'zone-tidal' },
@@ -318,43 +365,95 @@
             const prevState = BattleEngine.getState();
             const prevOppHP = prevState.opponent[prevState.opponentActive].hp;
             const prevPlayerHP = prevState.player[prevState.playerActive].hp;
+            const playerType = prevState.player[prevState.playerActive].type;
+            const oppType = prevState.opponent[prevState.opponentActive].type;
+            const typeAdv = CreatureData.getTypeAdvantage(playerType, oppType);
 
             const state = BattleEngine.playerTurn(battleAction, correct, fast);
             document.getElementById('question-area').style.display = 'none';
 
-            // Play battle SFX based on what happened
             const currOpp = state.opponent[state.opponentActive];
             const currPlayer = state.player[state.playerActive];
+            const oppDmgTaken = prevOppHP - currOpp.hp;
+            const playerDmgTaken = prevPlayerHP - currPlayer.hp;
 
-            // Player attack sound
+            // --- PLAYER ATTACK ANIMATIONS ---
             if (correct) {
+                const color = TYPE_COLORS[playerType] || '#fff';
+
                 if (battleAction === 'ability') {
                     AudioSystem.playAbility();
+                    playBattleAnimation('#player-creature', 'ability-anim', 500);
+                    setTimeout(() => {
+                        spawnAttackParticles('#opp-creature', color, 12);
+                    }, 200);
                 } else {
                     AudioSystem.playAttack();
+                    // Player lunge toward opponent
+                    playBattleAnimation('#player-emoji', 'attack-anim', 500);
+                    setTimeout(() => {
+                        spawnAttackParticles('#opp-creature', color, 8);
+                    }, 200);
+                }
+
+                // Type advantage flash
+                if (typeAdv > 1) {
+                    playBattleAnimation('.battle-area', 'type-advantage-anim', 600);
                 }
             } else {
                 AudioSystem.playWeakAttack();
+                // Weak attack: small particles only
+                spawnAttackParticles('#opp-creature', '#999', 3);
             }
 
-            // Check if opponent took damage
-            if (currOpp.hp < prevOppHP) {
-                setTimeout(() => AudioSystem.playDamage(), 150);
+            // Opponent takes damage
+            if (oppDmgTaken > 0) {
+                setTimeout(() => {
+                    AudioSystem.playDamage();
+                    playBattleAnimation('#opp-creature', 'damage-anim', 400);
+                    playBattleAnimation('#opp-hp', 'hp-drain-anim', 300);
+                    const numClass = typeAdv > 1 ? 'crit' : (oppDmgTaken <= 2 ? 'weak' : '');
+                    showDamageNumber('#opp-creature', '-' + oppDmgTaken, numClass);
+                }, 250);
             }
 
-            // Check if opponent fainted
+            // Opponent fainted
             if (prevOppHP > 0 && currOpp.hp <= 0) {
-                setTimeout(() => AudioSystem.playFainted(), 300);
+                setTimeout(() => {
+                    AudioSystem.playFainted();
+                    playBattleAnimation('#opp-emoji', 'faint-anim', 600);
+                }, 500);
             }
 
-            // Check if player took damage from opponent counterattack
-            if (currPlayer.hp < prevPlayerHP) {
-                setTimeout(() => AudioSystem.playDamage(), 400);
+            // Heal animation (if ability healed player)
+            if (currPlayer.hp > prevPlayerHP) {
+                setTimeout(() => {
+                    playBattleAnimation('#player-creature', 'heal-anim', 600);
+                    showDamageNumber('#player-creature', '+' + (currPlayer.hp - prevPlayerHP), 'heal');
+                }, 300);
             }
 
-            // Check if player creature fainted
+            // --- OPPONENT COUNTERATTACK ANIMATIONS ---
+            if (playerDmgTaken > 0) {
+                const oppColor = TYPE_COLORS[oppType] || '#fff';
+                setTimeout(() => {
+                    playBattleAnimation('#opp-emoji', 'attack-anim-reverse', 500);
+                }, 500);
+                setTimeout(() => {
+                    AudioSystem.playDamage();
+                    playBattleAnimation('#player-creature', 'damage-anim', 400);
+                    playBattleAnimation('#player-hp', 'hp-drain-anim', 300);
+                    spawnAttackParticles('#player-creature', oppColor, 6);
+                    showDamageNumber('#player-creature', '-' + playerDmgTaken, '');
+                }, 700);
+            }
+
+            // Player creature fainted
             if (prevPlayerHP > 0 && currPlayer.hp <= 0) {
-                setTimeout(() => AudioSystem.playFainted(), 550);
+                setTimeout(() => {
+                    AudioSystem.playFainted();
+                    playBattleAnimation('#player-emoji', 'faint-anim', 600);
+                }, 900);
             }
 
             _updateBattleUI();
@@ -364,13 +463,17 @@
                 setTimeout(() => {
                     if (state.winner === 'player') {
                         AudioSystem.playVictory();
+                        playBattleAnimation('#player-creature', 'victory-anim', 2400);
                     } else {
                         AudioSystem.playDefeat();
                     }
                     _showResults(state);
-                }, 1000);
+                }, 1200);
             } else {
-                document.getElementById('battle-actions').style.display = 'flex';
+                // Delay showing actions so animations finish
+                setTimeout(() => {
+                    document.getElementById('battle-actions').style.display = 'flex';
+                }, playerDmgTaken > 0 ? 600 : 200);
             }
         }, 800);
     }
