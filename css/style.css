@@ -168,6 +168,51 @@ html, body {
 .answer-btn.wrong { background: rgba(231,76,60,0.3) !important; border-color: var(--otb-danger) !important; }
 .answer-btn:focus-visible { outline: 3px solid var(--otb-coin); outline-offset: 2px; }
 
+/* ============ QUESTION TIMER ============ */
+.question-timer-bar {
+    width: 100%; height: 6px; background: rgba(255,255,255,0.1);
+    border-radius: 3px; overflow: hidden; margin-bottom: 8px;
+}
+.question-timer-fill {
+    height: 100%; width: 100%; background: linear-gradient(90deg, var(--game-accent), #e94560);
+    border-radius: 3px; transform-origin: left;
+    transition: none;
+}
+.question-timer-fill.animating {
+    animation: timer-drain 5s linear forwards;
+}
+@keyframes timer-drain {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}
+.question-timer-fill.expired {
+    transform: scaleX(0);
+    background: var(--otb-danger);
+}
+
+.speed-bonus {
+    display: none; text-align: center;
+    font-family: var(--otb-font-heading); font-size: 0.85rem;
+    color: var(--otb-coin); margin-top: 6px;
+    animation: speed-bonus-pop 0.5s ease-out;
+}
+.speed-bonus.visible { display: block; }
+@keyframes speed-bonus-pop {
+    0% { transform: scale(0.5); opacity: 0; }
+    60% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.explanation-box {
+    display: none; text-align: center;
+    font-family: var(--otb-font-body); font-size: 0.75rem;
+    color: var(--otb-text-muted); margin-top: 8px;
+    padding: 6px 12px; border-radius: 8px;
+    background: rgba(231, 76, 60, 0.12); border: 1px solid rgba(231, 76, 60, 0.3);
+    line-height: 1.4;
+}
+.explanation-box.visible { display: block; animation: fadeIn 0.3s ease-out; }
+
 .battle-log {
     font-family: var(--otb-font-body); font-size: 0.7rem;
     color: var(--otb-text-muted); text-align: center;
@@ -221,8 +266,98 @@ html, body {
 }
 
 /* ============ RESPONSIVE ============ */
-@media (max-height: 650px) { .game-title { font-size: 2rem; } .title-accent { font-size: 1.6rem; } }
 @media (max-width: 600px) { .collection-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* ===== TABLET LANDSCAPE (1024x600 Fire tablet) ===== */
+@media (max-height: 650px) and (orientation: landscape) {
+    /* Title screen */
+    .game-title { font-size: 2rem; }
+    .title-accent { font-size: 1.6rem; }
+    .title-content { gap: 8px; }
+
+    /* Screen headers */
+    .screen-header { padding: 6px 12px; }
+    .screen-header h2 { font-size: 1rem; }
+
+    /* Collection */
+    .collection-tabs { padding: 4px 12px; }
+    .type-tab { padding: 4px 10px; font-size: 0.7rem; min-height: 36px; }
+    .collection-grid { grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 8px 12px; }
+    .creature-slot { padding: 6px; min-height: 80px; }
+    .creature-emoji { font-size: 1.6rem; }
+    .collection-count { padding: 4px; font-size: 0.75rem; }
+
+    /* Deck builder */
+    .deck-slots { padding: 8px; gap: 6px; }
+    .deck-slot { width: 64px; height: 80px; }
+
+    /* Map */
+    .map-content { padding: 12px; gap: 10px; }
+    .zone-card { width: 130px; padding: 10px; }
+    .zone-icon { font-size: 2rem; margin-bottom: 4px; }
+    .zone-name { font-size: 0.8rem; }
+
+    /* Battle screen */
+    .battle-creatures { padding: 10px 40px; height: 50%; }
+    .battle-creature-emoji { font-size: 3rem; }
+    .battle-creature-name { font-size: 0.75rem; }
+    .battle-hp-bar { width: 100px; height: 8px; }
+    .battle-vs { font-size: 1.2rem; }
+
+    /* Question area */
+    .question-area { padding: 8px 16px; }
+    .question-text { font-size: 0.85rem; margin-bottom: 6px; }
+    .answer-grid { gap: 6px; }
+    .answer-btn { padding: 8px; font-size: 0.8rem; min-height: 40px; }
+    .question-timer-bar { margin-bottom: 4px; }
+    .battle-log { padding: 4px; font-size: 0.65rem; }
+    .explanation-box { font-size: 0.7rem; padding: 4px 8px; margin-top: 4px; }
+
+    /* Results */
+    .results-title { font-size: 1.4rem; }
+    .results-card-reward { font-size: 2.2rem; padding: 8px; }
+    .results-stats { font-size: 0.75rem; line-height: 1.6; }
+    .results-content { gap: 8px; }
+
+    /* Pack opening */
+    .pack-cards { gap: 10px; padding: 12px; }
+    .pack-card { width: 80px; height: 110px; font-size: 2rem; }
+
+    /* Shop */
+    .shop-balance { font-size: 1rem; padding: 6px 16px; }
+    .shop-items { gap: 10px; }
+    .shop-item { width: 120px; padding: 10px 8px; }
+    .shop-item-icon { font-size: 1.6rem; }
+
+    /* Swap panel */
+    .swap-panel { padding: 6px 12px; }
+    .swap-card { width: 72px; padding: 6px; }
+    .swap-card .creature-emoji { font-size: 1.2rem; }
+
+    /* Settings */
+    .settings-content { padding: 12px; gap: 12px; }
+
+    /* Evolution */
+    .evolution-creature { font-size: 3.5rem; }
+    .evolution-text { font-size: 1rem; }
+    .evolution-label { font-size: 1rem; }
+}
+
+/* ===== LANDSCAPE LOCK HINT ===== */
+@media (orientation: portrait) {
+    body::before {
+        content: 'Please rotate your device for the best experience!';
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: var(--game-accent);
+        color: #fff;
+        text-align: center;
+        padding: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        z-index: 9999;
+    }
+}
 
 /* ============ BATTLE ANIMATIONS ============ */
 @keyframes attack-slash {
@@ -453,6 +588,81 @@ html, body {
     border-radius: 14px;
     image-rendering: auto;
     display: inline-block;
+}
+
+/* ============ SWAP PANEL ============ */
+.swap-panel {
+    background: rgba(0,0,0,0.6); padding: 10px 16px;
+    border-top: 3px solid var(--game-accent);
+}
+.swap-panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px;
+    font-family: var(--otb-font-heading); font-size: 0.85rem; color: #fff;
+}
+.swap-bench {
+    display: flex; gap: 10px; justify-content: center;
+}
+.swap-card {
+    width: 90px; padding: 8px; border: 2px solid var(--otb-border);
+    border-radius: 10px; background: rgba(255,255,255,0.06);
+    text-align: center; cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+}
+.swap-card:hover { border-color: var(--game-accent); transform: translateY(-3px); }
+.swap-card:active { transform: scale(0.95); }
+.swap-card .creature-emoji { font-size: 1.5rem; }
+.swap-card .swap-card-name {
+    font-family: var(--otb-font-body); font-size: 0.6rem; color: var(--otb-text);
+    margin-top: 2px;
+}
+.swap-card .swap-card-hp {
+    font-size: 0.55rem; color: var(--otb-text-muted); margin-top: 2px;
+}
+.swap-card .swap-card-hp-bar {
+    width: 100%; height: 4px; background: #333; border-radius: 2px; margin-top: 3px; overflow: hidden;
+}
+.swap-card .swap-card-hp-fill {
+    height: 100%; background: var(--otb-success); border-radius: 2px;
+}
+.swap-card .swap-card-hp-fill.low { background: var(--otb-danger); }
+
+/* ============ STARDUST SHOP ============ */
+#screen-shop { flex-direction: column; background: var(--otb-bg-primary); }
+.shop-content {
+    flex: 1; padding: 16px; display: flex; flex-direction: column;
+    align-items: center; gap: 16px; overflow-y: auto;
+}
+.shop-balance {
+    font-family: var(--otb-font-heading); font-size: 1.3rem;
+    color: var(--otb-coin); text-align: center;
+    padding: 10px 24px; border-radius: 20px;
+    background: rgba(255,215,0,0.08); border: 2px solid rgba(255,215,0,0.2);
+}
+.shop-items {
+    display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;
+    max-width: 500px; width: 100%;
+}
+.shop-item {
+    width: 140px; padding: 14px 10px; border: 2px solid var(--otb-border);
+    border-radius: var(--otb-radius-lg); background: rgba(255,255,255,0.04);
+    text-align: center; cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.shop-item:hover { border-color: var(--game-accent); transform: translateY(-3px); box-shadow: 0 4px 16px rgba(245,158,11,0.15); }
+.shop-item:active { transform: scale(0.96); }
+.shop-item.disabled { opacity: 0.4; pointer-events: none; }
+.shop-item-icon { font-size: 2rem; }
+.shop-item-name { font-family: var(--otb-font-heading); font-size: 0.8rem; color: #fff; }
+.shop-item-desc { font-size: 0.6rem; color: var(--otb-text-muted); line-height: 1.3; }
+.shop-item-cost {
+    font-family: var(--otb-font-heading); font-size: 0.75rem;
+    color: var(--otb-coin); margin-top: 2px;
+}
+.shop-item-active {
+    font-size: 0.55rem; color: var(--otb-success); font-weight: 700;
+    margin-top: 2px;
 }
 
 /* ============ OVERLAY ============ */

@@ -32,6 +32,9 @@
                 <button class="otb-btn otb-btn-secondary" id="btn-deck" aria-label="Build Deck">Deck</button>
             </div>
             <div class="title-row">
+                <button class="otb-btn otb-btn-secondary" id="btn-shop" aria-label="Stardust Shop">✨ Shop</button>
+            </div>
+            <div class="title-row">
                 <button class="otb-btn otb-btn-small" id="btn-settings" aria-label="Settings">Settings</button>
                 <a id="hub-link" href="#" class="otb-btn otb-btn-small" style="opacity:0.5;text-decoration:none;" aria-label="Return to Hub">🎮 Hub</a>
             </div>
@@ -45,7 +48,7 @@
             <h2>Collection</h2>
         </div>
         <div class="collection-count" id="coll-count">0 / 30</div>
-        <div class="collection-tabs" id="coll-tabs"></div>
+        <div class="collection-tabs" id="coll-tabs" role="tablist" aria-label="Creature types"></div>
         <div class="collection-grid" id="coll-grid"></div>
     </div>
 
@@ -89,15 +92,26 @@
                     <div class="battle-hp-text" id="opp-hp-text"></div>
                 </div>
             </div>
-            <div class="battle-log" id="battle-log"></div>
+            <div class="battle-log" id="battle-log" aria-live="polite"></div>
         </div>
         <div class="question-area" id="question-area" style="display:none;">
-            <div class="question-text" id="q-text"></div>
+            <div class="question-timer-bar" id="question-timer-bar"><div class="question-timer-fill" id="question-timer-fill"></div></div>
+            <div class="question-text" id="q-text" aria-live="polite"></div>
             <div class="answer-grid" id="answer-grid"></div>
+            <div class="speed-bonus" id="speed-bonus" aria-live="polite">Speed Bonus!</div>
+            <div class="explanation-box" id="explanation-box" aria-live="polite"></div>
         </div>
         <div class="battle-actions" id="battle-actions">
             <button class="otb-btn otb-btn-primary" id="btn-attack" aria-label="Attack">⚔️ Attack</button>
             <button class="otb-btn otb-btn-secondary" id="btn-ability" aria-label="Use Ability">✨ Ability</button>
+            <button class="otb-btn otb-btn-small" id="btn-swap" aria-label="Swap Creature" style="display:none;">🔄 Swap</button>
+        </div>
+        <div class="swap-panel" id="swap-panel" style="display:none;">
+            <div class="swap-panel-header">
+                <span>Choose a creature:</span>
+                <button class="otb-btn otb-btn-small" id="btn-swap-cancel" aria-label="Cancel Swap">Cancel</button>
+            </div>
+            <div class="swap-bench" id="swap-bench"></div>
         </div>
     </div>
 
@@ -125,6 +139,18 @@
         </div>
     </div>
 
+    <!-- Stardust Shop Screen -->
+    <div id="screen-shop" class="screen">
+        <div class="screen-header">
+            <button class="otb-btn otb-btn-small" id="btn-shop-back" aria-label="Back">Back</button>
+            <h2>Stardust Shop</h2>
+        </div>
+        <div class="shop-content">
+            <div class="shop-balance" id="shop-balance">✨ 0 Stardust</div>
+            <div class="shop-items" id="shop-items"></div>
+        </div>
+    </div>
+
     <!-- Settings Screen -->
     <div id="screen-settings" class="screen">
         <div class="screen-header">
@@ -133,16 +159,16 @@
         </div>
         <div class="settings-content">
             <div class="otb-settings-group">
-                <div class="otb-settings-item on" id="setting-sfx" data-setting="sfx">
+                <div class="otb-settings-item on" id="setting-sfx" data-setting="sfx" role="switch" aria-checked="true" aria-label="Sound Effects" tabindex="0">
                     <div class="otb-settings-item-info">
-                        <span class="otb-settings-icon">🔊</span>
+                        <span class="otb-settings-icon" aria-hidden="true">🔊</span>
                         <div><div class="otb-settings-label">Sound Effects</div></div>
                     </div>
                     <div class="otb-toggle-track on"><div class="otb-toggle-thumb"></div></div>
                 </div>
-                <div class="otb-settings-item on" id="setting-music" data-setting="music">
+                <div class="otb-settings-item on" id="setting-music" data-setting="music" role="switch" aria-checked="true" aria-label="Music" tabindex="0">
                     <div class="otb-settings-item-info">
-                        <span class="otb-settings-icon">🎵</span>
+                        <span class="otb-settings-icon" aria-hidden="true">🎵</span>
                         <div><div class="otb-settings-label">Music</div></div>
                     </div>
                     <div class="otb-toggle-track on"><div class="otb-toggle-thumb"></div></div>
@@ -150,7 +176,7 @@
             </div>
             <div class="otb-about">
                 <div class="otb-about-text">Part of the Blake Boys Gaming family</div>
-                <div class="otb-about-version">Creature Cards v1.0</div>
+                <div class="otb-about-version">Creature Cards v1.1</div>
             </div>
         </div>
     </div>

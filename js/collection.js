@@ -172,7 +172,7 @@ const Collection = (() => {
     }
 
     return {
-        get, addCreature, isOwned, getOwnedList, getOwnedCount,
+        get, save, addCreature, isOwned, getOwnedList, getOwnedCount,
         recordWin, openPack, getStardust, giveStarterPack, hasStarterPack,
         getCreatureWins, isEvolved, canEvolve, evolveCreature
     };

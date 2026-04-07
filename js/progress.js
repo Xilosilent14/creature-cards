@@ -15,7 +15,9 @@ const Progress = (() => {
             totalXP: 0,
             settings: { sfx: true, music: true, voice: true },
             tutorialDone: false,
-            lastDailyPack: null // date string
+            lastDailyPack: null, // date string
+            xpBoostLeft: 0,     // battles remaining with 2x XP
+            coinBoostLeft: 0    // battles remaining with 2x coins
         };
     }
 
@@ -127,11 +129,50 @@ const Progress = (() => {
 
     function isTutorialDone() { return get().tutorialDone; }
 
+    // === Boost System ===
+    function getXPBoostLeft() { return get().xpBoostLeft || 0; }
+    function getCoinBoostLeft() { return get().coinBoostLeft || 0; }
+
+    function addXPBoost(battles) {
+        const d = get();
+        d.xpBoostLeft = (d.xpBoostLeft || 0) + battles;
+        save(d);
+    }
+
+    function addCoinBoost(battles) {
+        const d = get();
+        d.coinBoostLeft = (d.coinBoostLeft || 0) + battles;
+        save(d);
+    }
+
+    function consumeBoosts() {
+        // Call after each battle to decrement active boosts. Returns multipliers.
+        const d = get();
+        const xpMult = (d.xpBoostLeft > 0) ? 2 : 1;
+        const coinMult = (d.coinBoostLeft > 0) ? 2 : 1;
+        if (d.xpBoostLeft > 0) d.xpBoostLeft--;
+        if (d.coinBoostLeft > 0) d.coinBoostLeft--;
+        save(d);
+        return { xpMult, coinMult };
+    }
+
+    // === Stardust Shop ===
+    function spendStardust(amount) {
+        const coll = Collection.get();
+        if (coll.stardust < amount) return false;
+        coll.stardust -= amount;
+        Collection.save(coll);
+        return true;
+    }
+
     return {
         get, save, getDeck, setDeck, autoFillDeck,
         getZoneProgress, recordBattleResult,
         canClaimDailyPack, claimDailyPack,
         getSettings, saveSetting,
-        markTutorialDone, isTutorialDone
+        markTutorialDone, isTutorialDone,
+        getXPBoostLeft, getCoinBoostLeft,
+        addXPBoost, addCoinBoost, consumeBoosts,
+        spendStardust
     };
 })();

@@ -7,6 +7,7 @@
     let currentTier = 1;
     let battleAction = null;
     let questionStartTime = 0;
+    let _packReturnScreen = null;
 
     // === BATTLE ANIMATION HELPERS ===
     const TYPE_COLORS = {
@@ -125,11 +126,26 @@
             Progress.autoFillDeck();
             _buildDeckScreen();
         });
-        document.getElementById('btn-pack-done').addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
+        document.getElementById('btn-pack-done').addEventListener('click', () => {
+            AudioSystem.playClick();
+            // Return to shop if we came from there, else title
+            if (_packReturnScreen) {
+                showScreen(_packReturnScreen);
+                _packReturnScreen = null;
+            } else {
+                showScreen('title');
+            }
+        });
 
         // Battle actions
         document.getElementById('btn-attack').addEventListener('click', () => { AudioSystem.playClick(); _onBattleAction('attack'); });
         document.getElementById('btn-ability').addEventListener('click', () => { AudioSystem.playClick(); _onBattleAction('ability'); });
+        document.getElementById('btn-swap').addEventListener('click', () => { AudioSystem.playClick(); _showSwapPanel(); });
+        document.getElementById('btn-swap-cancel').addEventListener('click', () => { AudioSystem.playClick(); _hideSwapPanel(); });
+
+        // Shop
+        document.getElementById('btn-shop').addEventListener('click', () => { AudioSystem.playClick(); showScreen('shop'); });
+        document.getElementById('btn-shop-back').addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
 
         // Settings toggles
         document.querySelectorAll('.otb-settings-item').forEach(item => {
@@ -154,6 +170,7 @@
             // Show pack opening after splash
             setTimeout(() => {
                 AudioSystem.playDailyPack();
+                _packReturnScreen = null;
                 _showPackOpening(cards, 'Daily Pack!');
             }, 2500);
         }
@@ -181,6 +198,13 @@
         if (name === 'collection') _buildCollectionScreen();
         if (name === 'deck') _buildDeckScreen();
         if (name === 'map') _buildMapScreen();
+        if (name === 'shop') _buildShopScreen();
+
+        // Title screen ambient music
+        if (name === 'title') {
+            AudioSystem.stopMusic();
+            AudioSystem.startTitleMusic();
+        }
     }
 
     // === COLLECTION SCREEN ===
@@ -362,8 +386,9 @@
         _updateBattleUI();
         AudioSystem.startBattleMusic();
 
-        // Show actions
+        // Show actions, hide swap panel
         document.getElementById('question-area').style.display = 'none';
+        document.getElementById('swap-panel').style.display = 'none';
         document.getElementById('battle-actions').style.display = 'flex';
     }
 
@@ -388,6 +413,19 @@
             });
         });
 
+        // Reset timer bar, speed bonus, explanation
+        const timerFill = document.getElementById('question-timer-fill');
+        timerFill.classList.remove('animating', 'expired');
+        timerFill.style.transform = '';
+        timerFill.style.background = '';
+        // Force reflow so animation restarts cleanly
+        void timerFill.offsetWidth;
+        timerFill.classList.add('animating');
+
+        document.getElementById('speed-bonus').classList.remove('visible');
+        document.getElementById('explanation-box').classList.remove('visible');
+        document.getElementById('explanation-box').textContent = '';
+
         document.getElementById('question-area').style.display = 'block';
         document.getElementById('battle-actions').style.display = 'none';
         questionStartTime = Date.now();
@@ -396,6 +434,19 @@
     function _onAnswer(idx, question) {
         const correct = idx === question.correctIndex;
         const fast = (Date.now() - questionStartTime) < 5000;
+
+        // Stop timer animation and freeze at current position
+        const timerFill = document.getElementById('question-timer-fill');
+        const elapsed = (Date.now() - questionStartTime) / 5000;
+        const remaining = Math.max(0, 1 - elapsed);
+        timerFill.classList.remove('animating');
+        timerFill.style.transform = 'scaleX(' + remaining + ')';
+        if (!fast) timerFill.style.background = 'var(--otb-danger)';
+
+        // Speed bonus indicator
+        if (correct && fast) {
+            document.getElementById('speed-bonus').classList.add('visible');
+        }
 
         // Audio + visual feedback
         if (correct) {
@@ -411,13 +462,21 @@
             if (i === idx && !correct) btn.classList.add('wrong');
         });
 
+        // Show explanation on wrong answers
+        if (!correct && question.explanation) {
+            const explBox = document.getElementById('explanation-box');
+            explBox.textContent = question.explanation;
+            explBox.classList.add('visible');
+        }
+
         // Record answer in ecosystem
         QuestionBridge.recordAnswer(correct);
         if (typeof OTBEcosystem !== 'undefined') {
             OTBEcosystem.recordAnswer(question.topic, question.domain, correct, QuestionBridge.getLevel(), 'creature-cards');
         }
 
-        // Execute battle turn after brief delay
+        // Execute battle turn after brief delay (longer if showing explanation)
+        const delay = (!correct && question.explanation) ? 2500 : 800;
         setTimeout(() => {
             const prevState = BattleEngine.getState();
             const prevOppHP = prevState.opponent[prevState.opponentActive].hp;
@@ -532,7 +591,7 @@
                     document.getElementById('battle-actions').style.display = 'flex';
                 }, playerDmgTaken > 0 ? 600 : 200);
             }
-        }, 800);
+        }, delay);
     }
 
     function _updateBattleUI() {
@@ -586,6 +645,131 @@
         if (pc.ability) {
             document.getElementById('btn-ability').textContent = '✨ ' + pc.ability.name;
         }
+
+        // Update swap button visibility
+        _updateSwapButton();
+    }
+
+    // === SWAP PANEL ===
+    function _showSwapPanel() {
+        const state = BattleEngine.getState();
+        if (!state) return;
+        const bench = state.player
+            .map((c, i) => ({ ...c, idx: i }))
+            .filter((c, i) => i !== state.playerActive && c.hp > 0);
+        if (bench.length === 0) return;
+
+        const benchEl = document.getElementById('swap-bench');
+        benchEl.innerHTML = bench.map(c => {
+            const base = CreatureData.getCreature(c.id);
+            const evolved = c._evolved;
+            const dd = getCreatureDisplayData(base, evolved);
+            const visual = dd ? getCreatureDisplay(dd, 'creature-sprite-sm') : `<span style="font-size:1.5rem">${c.emoji}</span>`;
+            const hpPct = (c.hp / c.maxHP) * 100;
+            return `<div class="swap-card" data-idx="${c.idx}">
+                <div class="creature-emoji">${visual}</div>
+                <div class="swap-card-name">${dd ? dd.name : c.name}</div>
+                <div class="swap-card-hp">${c.hp}/${c.maxHP}</div>
+                <div class="swap-card-hp-bar"><div class="swap-card-hp-fill${hpPct < 30 ? ' low' : ''}" style="width:${hpPct}%"></div></div>
+            </div>`;
+        }).join('');
+
+        benchEl.querySelectorAll('.swap-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const idx = parseInt(card.dataset.idx);
+                AudioSystem.playSwap();
+                _hideSwapPanel();
+                // Execute swap turn (no question needed)
+                const st = BattleEngine.playerTurn('swap', false, false, idx);
+                _updateBattleUI();
+                if (st.finished) {
+                    AudioSystem.stopMusic();
+                    setTimeout(() => _showResults(st), 600);
+                } else {
+                    document.getElementById('battle-actions').style.display = 'flex';
+                }
+            });
+        });
+
+        document.getElementById('battle-actions').style.display = 'none';
+        document.getElementById('question-area').style.display = 'none';
+        document.getElementById('swap-panel').style.display = 'block';
+    }
+
+    function _hideSwapPanel() {
+        document.getElementById('swap-panel').style.display = 'none';
+        document.getElementById('battle-actions').style.display = 'flex';
+    }
+
+    function _updateSwapButton() {
+        const state = BattleEngine.getState();
+        if (!state) return;
+        const benchAlive = state.player.filter((c, i) => i !== state.playerActive && c.hp > 0);
+        document.getElementById('btn-swap').style.display = benchAlive.length > 0 ? 'inline-block' : 'none';
+    }
+
+    // === STARDUST SHOP ===
+    const SHOP_ITEMS = [
+        { id: 'card_pack', icon: '🎴', name: 'Card Pack', desc: 'Open a bonus 3-card pack', cost: 50 },
+        { id: 'xp_boost',  icon: '⭐', name: 'XP Boost',  desc: 'Double XP for 5 battles', cost: 30 },
+        { id: 'coin_boost', icon: '🪙', name: 'Coin Boost', desc: 'Double coins for 5 battles', cost: 25 }
+    ];
+
+    function _buildShopScreen() {
+        const balance = Collection.getStardust();
+        document.getElementById('shop-balance').textContent = `✨ ${balance} Stardust`;
+
+        const itemsEl = document.getElementById('shop-items');
+        itemsEl.innerHTML = SHOP_ITEMS.map(item => {
+            const canAfford = balance >= item.cost;
+            let activeText = '';
+            if (item.id === 'xp_boost' && Progress.getXPBoostLeft() > 0) {
+                activeText = `Active: ${Progress.getXPBoostLeft()} battles left`;
+            }
+            if (item.id === 'coin_boost' && Progress.getCoinBoostLeft() > 0) {
+                activeText = `Active: ${Progress.getCoinBoostLeft()} battles left`;
+            }
+            return `<div class="shop-item ${canAfford ? '' : 'disabled'}" data-item="${item.id}">
+                <div class="shop-item-icon">${item.icon}</div>
+                <div class="shop-item-name">${item.name}</div>
+                <div class="shop-item-desc">${item.desc}</div>
+                <div class="shop-item-cost">✨ ${item.cost}</div>
+                ${activeText ? `<div class="shop-item-active">${activeText}</div>` : ''}
+            </div>`;
+        }).join('');
+
+        itemsEl.querySelectorAll('.shop-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const itemId = el.dataset.item;
+                _purchaseShopItem(itemId);
+            });
+        });
+    }
+
+    function _purchaseShopItem(itemId) {
+        const item = SHOP_ITEMS.find(i => i.id === itemId);
+        if (!item) return;
+
+        const success = Progress.spendStardust(item.cost);
+        if (!success) return;
+
+        AudioSystem.playPurchase();
+
+        if (itemId === 'card_pack') {
+            const cards = Collection.openPack('daily');
+            _packReturnScreen = 'shop';
+            _showPackOpening(cards, 'Bonus Pack!');
+            return; // pack screen replaces shop screen
+        }
+        if (itemId === 'xp_boost') {
+            Progress.addXPBoost(5);
+        }
+        if (itemId === 'coin_boost') {
+            Progress.addCoinBoost(5);
+        }
+
+        // Refresh shop UI
+        _buildShopScreen();
     }
 
     function _showResults(state) {
@@ -594,10 +778,12 @@
         document.getElementById('results-title').textContent = won ? 'Victory!' : 'Defeat...';
         document.getElementById('results-title').style.color = won ? 'var(--otb-coin)' : 'var(--otb-danger)';
 
-        // XP calculation
+        // XP calculation with boost multipliers
+        const boosts = Progress.consumeBoosts();
         const baseXP = won ? 30 : 15;
-        const xpEarned = baseXP;
-        const coinsEarned = won ? Math.floor(5 * (1 + currentTier * 0.5)) : 2;
+        const xpEarned = baseXP * boosts.xpMult;
+        const baseCoins = won ? Math.floor(5 * (1 + currentTier * 0.5)) : 2;
+        const coinsEarned = baseCoins * boosts.coinMult;
 
         // Record in ecosystem
         if (typeof OTBEcosystem !== 'undefined') {
@@ -631,12 +817,14 @@
             rewardEl.style.display = 'none';
         }
 
+        const xpBoostLabel = boosts.xpMult > 1 ? ' (2x Boost!)' : '';
+        const coinBoostLabel = boosts.coinMult > 1 ? ' (2x Boost!)' : '';
         document.getElementById('results-stats').innerHTML = `
-            <div>${won ? 'Coins earned' : 'Consolation coins'}: <strong>${coinsEarned}</strong></div>
+            <div>${won ? 'Coins earned' : 'Consolation coins'}: <strong>${coinsEarned}</strong>${coinBoostLabel ? `<span style="color:var(--otb-coin);font-size:0.7rem;"> ${coinBoostLabel}</span>` : ''}</div>
             <div>Turns: <strong>${state.turn}</strong></div>
             ${won ? '<div style="color:var(--otb-success);">New card earned!</div>' : '<div style="color:var(--otb-text-muted);">Try using type advantages!</div>'}
         `;
-        document.getElementById('results-xp').textContent = `+${xpEarned} XP`;
+        document.getElementById('results-xp').textContent = `+${xpEarned} XP${xpBoostLabel}`;
 
         // If any creatures can evolve, show evolution sequence before results
         if (evolveQueue.length > 0) {

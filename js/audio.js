@@ -250,48 +250,189 @@ const AudioSystem = (() => {
         _osc('sine', 160, sfxGain, t + 0.3, 0.2, 60);
     }
 
+    function playPurchase() {
+        if (!sfxEnabled || !_ensureCtx()) return;
+        const t = ctx.currentTime;
+        // Coin-drop chime: descending sparkle
+        _note(1200, t, 0.08);
+        _note(1000, t + 0.07, 0.08);
+        _note(800, t + 0.14, 0.1);
+        _note(1400, t + 0.25, 0.15);
+    }
+
+    function playSwap() {
+        if (!sfxEnabled || !_ensureCtx()) return;
+        const t = ctx.currentTime;
+        // Quick whoosh swap sound
+        _osc('sine', 600, sfxGain, t, 0.12, 300);
+        _osc('sine', 300, sfxGain, t + 0.08, 0.12, 600);
+    }
+
     // --- Background Music ---
 
     function startBattleMusic() {
         if (!musicEnabled || !_ensureCtx()) return;
         stopMusic();
-        // Tense pentatonic loop at ~100 BPM
-        const notes = [220, 261.63, 293.66, 349.23, 392, 349.23, 293.66, 261.63];
-        let i = 0;
-        const beatMs = 300; // ~100 BPM sixteenth feel
 
-        function playBeat() {
+        // Battle theme: C minor, ~125 BPM (480ms per beat)
+        // Melody (square wave), Bass (triangle), Drums (noise kicks + hi-hats)
+        const BPM = 125;
+        const beatSec = 60 / BPM;
+        const barSec = beatSec * 4;
+
+        // C minor melody: C4 Eb4 G4 F4 | Eb4 D4 C4 Bb3 (8th notes)
+        const melody = [
+            261.63, 311.13, 392.00, 349.23,
+            311.13, 293.66, 261.63, 233.08,
+            261.63, 349.23, 311.13, 392.00,
+            440.00, 392.00, 349.23, 311.13
+        ];
+        // Bass notes: one per beat, root movement
+        const bass = [
+            130.81, 130.81, 155.56, 155.56,  // C3, C3, Eb3, Eb3
+            116.54, 116.54, 130.81, 130.81,   // Bb2, Bb2, C3, C3
+            130.81, 130.81, 174.61, 174.61,    // C3, C3, F3, F3
+            155.56, 146.83, 130.81, 130.81     // Eb3, D3, C3, C3
+        ];
+
+        let step = 0;
+        const totalSteps = 16;
+        const eighthSec = beatSec / 2;
+
+        function playStep() {
             if (!ctx || !musicEnabled) return;
             const t = ctx.currentTime;
+            const idx = step % totalSteps;
+
+            // --- Melody (square wave) ---
+            const mo = ctx.createOscillator();
+            const mg = ctx.createGain();
+            mo.type = 'square';
+            mo.frequency.setValueAtTime(melody[idx], t);
+            mg.gain.setValueAtTime(0.08, t);
+            mg.gain.setValueAtTime(0.08, t + eighthSec * 0.7);
+            mg.gain.exponentialRampToValueAtTime(0.001, t + eighthSec * 0.95);
+            mo.connect(mg);
+            mg.connect(musicGain);
+            mo.start(t);
+            mo.stop(t + eighthSec);
+
+            // --- Bass (triangle, one per beat = every 2 steps) ---
+            if (idx % 2 === 0) {
+                const bo = ctx.createOscillator();
+                const bg = ctx.createGain();
+                bo.type = 'triangle';
+                bo.frequency.setValueAtTime(bass[idx], t);
+                bg.gain.setValueAtTime(0.14, t);
+                bg.gain.exponentialRampToValueAtTime(0.001, t + beatSec * 0.9);
+                bo.connect(bg);
+                bg.connect(musicGain);
+                bo.start(t);
+                bo.stop(t + beatSec);
+            }
+
+            // --- Drums ---
+            // Kick on beats 0 and 2 (steps 0, 4, 8, 12)
+            if (idx % 4 === 0) {
+                const ko = ctx.createOscillator();
+                const kg = ctx.createGain();
+                ko.type = 'sine';
+                ko.frequency.setValueAtTime(150, t);
+                ko.frequency.exponentialRampToValueAtTime(40, t + 0.12);
+                kg.gain.setValueAtTime(0.2, t);
+                kg.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+                ko.connect(kg);
+                kg.connect(musicGain);
+                ko.start(t);
+                ko.stop(t + 0.15);
+            }
+
+            // Hi-hat every beat (steps 0, 2, 4, 6, 8, 10, 12, 14)
+            if (idx % 2 === 0) {
+                const bufSize = Math.floor(ctx.sampleRate * 0.04);
+                const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let j = 0; j < bufSize; j++) {
+                    data[j] = (Math.random() * 2 - 1) * 0.15;
+                }
+                const hh = ctx.createBufferSource();
+                hh.buffer = buf;
+                const hg = ctx.createGain();
+                // Accent on off-beats for groove
+                const vol = (idx % 4 === 2) ? 0.12 : 0.08;
+                hg.gain.setValueAtTime(vol, t);
+                hg.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+                // High-pass filter for crispness
+                const hf = ctx.createBiquadFilter();
+                hf.type = 'highpass';
+                hf.frequency.value = 8000;
+                hh.connect(hf);
+                hf.connect(hg);
+                hg.connect(musicGain);
+                hh.start(t);
+                hh.stop(t + 0.05);
+            }
+
+            step++;
+        }
+
+        playStep();
+        musicInterval = setInterval(playStep, eighthSec * 1000);
+    }
+
+    function startTitleMusic() {
+        if (!musicEnabled || !_ensureCtx()) return;
+        stopMusic();
+
+        // Calm ambient: slow arpeggiated C major 7 chords, sine wave
+        const BPM = 72;
+        const beatSec = 60 / BPM;
+        const notes = [
+            261.63, 329.63, 392.00, 493.88,  // C4, E4, G4, B4
+            293.66, 349.23, 440.00, 523.25,   // D4, F4, A4, C5
+            261.63, 311.13, 392.00, 523.25,   // C4, Eb4, G4, C5
+            246.94, 311.13, 370.00, 466.16    // B3, Eb4, F#4, Bb4
+        ];
+        let step = 0;
+        const total = notes.length;
+        const stepSec = beatSec;
+
+        function playStep() {
+            if (!ctx || !musicEnabled) return;
+            const t = ctx.currentTime;
+            const idx = step % total;
+
             const o = ctx.createOscillator();
             const g = ctx.createGain();
-            o.type = 'triangle';
-            o.frequency.setValueAtTime(notes[i % notes.length], t);
-            g.gain.setValueAtTime(0.12, t);
-            g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+            o.type = 'sine';
+            o.frequency.setValueAtTime(notes[idx], t);
+            g.gain.setValueAtTime(0.06, t);
+            g.gain.setValueAtTime(0.06, t + stepSec * 0.5);
+            g.gain.exponentialRampToValueAtTime(0.001, t + stepSec * 0.95);
             o.connect(g);
             g.connect(musicGain);
             o.start(t);
-            o.stop(t + 0.28);
+            o.stop(t + stepSec);
 
-            // Subtle bass on beats 0 and 4
-            if (i % 4 === 0) {
-                const b = ctx.createOscillator();
-                const bg = ctx.createGain();
-                b.type = 'sine';
-                b.frequency.setValueAtTime(notes[i % notes.length] / 2, t);
-                bg.gain.setValueAtTime(0.08, t);
-                bg.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-                b.connect(bg);
-                bg.connect(musicGain);
-                b.start(t);
-                b.stop(t + 0.35);
+            // Pad drone on every 4 steps
+            if (idx % 4 === 0) {
+                const po = ctx.createOscillator();
+                const pg = ctx.createGain();
+                po.type = 'sine';
+                po.frequency.setValueAtTime(notes[idx] / 2, t);
+                pg.gain.setValueAtTime(0.04, t);
+                pg.gain.exponentialRampToValueAtTime(0.001, t + stepSec * 3.8);
+                po.connect(pg);
+                pg.connect(musicGain);
+                po.start(t);
+                po.stop(t + stepSec * 4);
             }
-            i++;
+
+            step++;
         }
 
-        playBeat();
-        musicInterval = setInterval(playBeat, beatMs);
+        playStep();
+        musicInterval = setInterval(playStep, stepSec * 1000);
     }
 
     function stopMusic() {
@@ -331,7 +472,8 @@ const AudioSystem = (() => {
         playClick, playAbility,
         playCombo, playDailyPack,
         playHeal, playTypeAdvantage,
-        startBattleMusic, stopMusic,
+        playPurchase, playSwap,
+        startBattleMusic, startTitleMusic, stopMusic,
         setSFX, setMusic
     };
 })();
