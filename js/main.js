@@ -17,43 +17,54 @@
     ];
 
     function init() {
+        // Initialize audio system
+        AudioSystem.init();
+        // Unlock audio on first user interaction (required for mobile)
+        document.addEventListener('click', () => AudioSystem.unlock(), { once: true });
+        document.addEventListener('touchstart', () => AudioSystem.unlock(), { once: true });
+
         // First time: give starter pack
         if (!Collection.hasStarterPack()) {
             Collection.giveStarterPack();
             Progress.autoFillDeck();
         }
 
-        // Wire buttons
-        document.getElementById('btn-play').addEventListener('click', () => showScreen('map'));
-        document.getElementById('btn-collection').addEventListener('click', () => showScreen('collection'));
-        document.getElementById('btn-deck').addEventListener('click', () => showScreen('deck'));
-        document.getElementById('btn-settings').addEventListener('click', () => showScreen('settings'));
-        document.getElementById('btn-coll-back').addEventListener('click', () => showScreen('title'));
-        document.getElementById('btn-deck-back').addEventListener('click', () => showScreen('title'));
-        document.getElementById('btn-map-back').addEventListener('click', () => showScreen('title'));
-        document.getElementById('btn-settings-back').addEventListener('click', () => showScreen('title'));
-        document.getElementById('btn-to-map').addEventListener('click', () => showScreen('map'));
-        document.getElementById('btn-to-home').addEventListener('click', () => showScreen('title'));
-        document.getElementById('btn-next-battle').addEventListener('click', () => _startBattle(currentZone, currentTier));
+        // Wire buttons (all with click SFX)
+        document.getElementById('btn-play').addEventListener('click', () => { AudioSystem.playClick(); showScreen('map'); });
+        document.getElementById('btn-collection').addEventListener('click', () => { AudioSystem.playClick(); showScreen('collection'); });
+        document.getElementById('btn-deck').addEventListener('click', () => { AudioSystem.playClick(); showScreen('deck'); });
+        document.getElementById('btn-settings').addEventListener('click', () => { AudioSystem.playClick(); showScreen('settings'); });
+        document.getElementById('btn-coll-back').addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
+        document.getElementById('btn-deck-back').addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
+        document.getElementById('btn-map-back').addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
+        document.getElementById('btn-settings-back').addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
+        document.getElementById('btn-to-map').addEventListener('click', () => { AudioSystem.playClick(); AudioSystem.stopMusic(); showScreen('map'); });
+        document.getElementById('btn-to-home').addEventListener('click', () => { AudioSystem.playClick(); AudioSystem.stopMusic(); showScreen('title'); });
+        document.getElementById('btn-next-battle').addEventListener('click', () => { AudioSystem.playClick(); _startBattle(currentZone, currentTier); });
         document.getElementById('btn-auto-fill').addEventListener('click', () => {
+            AudioSystem.playClick();
             Progress.autoFillDeck();
             _buildDeckScreen();
         });
-        document.getElementById('btn-pack-done').addEventListener('click', () => showScreen('title'));
+        document.getElementById('btn-pack-done').addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
 
         // Battle actions
-        document.getElementById('btn-attack').addEventListener('click', () => _onBattleAction('attack'));
-        document.getElementById('btn-ability').addEventListener('click', () => _onBattleAction('ability'));
+        document.getElementById('btn-attack').addEventListener('click', () => { AudioSystem.playClick(); _onBattleAction('attack'); });
+        document.getElementById('btn-ability').addEventListener('click', () => { AudioSystem.playClick(); _onBattleAction('ability'); });
 
         // Settings toggles
         document.querySelectorAll('.otb-settings-item').forEach(item => {
             item.addEventListener('click', () => {
+                AudioSystem.playClick();
                 const key = item.dataset.setting;
                 const track = item.querySelector('.otb-toggle-track');
                 const isOn = track.classList.contains('on');
                 track.classList.toggle('on');
                 item.classList.toggle('on');
                 Progress.saveSetting(key, !isOn);
+                // Wire settings to audio system
+                if (key === 'sfx') AudioSystem.setSFX(!isOn);
+                if (key === 'music') AudioSystem.setMusic(!isOn);
             });
         });
 
@@ -62,7 +73,10 @@
             Progress.claimDailyPack();
             const cards = Collection.openPack('daily');
             // Show pack opening after splash
-            setTimeout(() => _showPackOpening(cards, 'Daily Pack!'), 2500);
+            setTimeout(() => {
+                AudioSystem.playDailyPack();
+                _showPackOpening(cards, 'Daily Pack!');
+            }, 2500);
         }
 
         // Ecosystem daily streak
@@ -109,6 +123,7 @@
 
         tabs.querySelectorAll('.type-tab').forEach(tab => {
             tab.addEventListener('click', () => {
+                AudioSystem.playClick();
                 activeType = tab.dataset.type;
                 tabs.querySelectorAll('.type-tab').forEach(t => t.classList.toggle('active', t.dataset.type === activeType));
                 _renderCreatureGrid(grid, activeType);
@@ -172,6 +187,7 @@
         // Wire tap to add/remove from deck
         gridEl.querySelectorAll('.creature-slot').forEach(slot => {
             slot.addEventListener('click', () => {
+                AudioSystem.playClick();
                 const id = slot.dataset.id;
                 const d = Progress.get();
                 if (d.deck.includes(id)) {
@@ -201,6 +217,7 @@
 
         el.querySelectorAll('.zone-card').forEach(card => {
             card.addEventListener('click', () => {
+                AudioSystem.playClick();
                 const zoneId = card.dataset.zone;
                 const zone = ZONES.find(z => z.id === zoneId);
                 const prog = Progress.getZoneProgress(zoneId);
@@ -239,6 +256,7 @@
         QuestionBridge.reset();
         showScreen('battle');
         _updateBattleUI();
+        AudioSystem.startBattleMusic();
 
         // Show actions
         document.getElementById('question-area').style.display = 'none';
@@ -260,7 +278,10 @@
         `).join('');
 
         grid.querySelectorAll('.answer-btn').forEach(btn => {
-            btn.addEventListener('click', () => _onAnswer(parseInt(btn.dataset.idx), q));
+            btn.addEventListener('click', () => {
+                AudioSystem.playClick();
+                _onAnswer(parseInt(btn.dataset.idx), q);
+            });
         });
 
         document.getElementById('question-area').style.display = 'block';
@@ -272,7 +293,13 @@
         const correct = idx === question.correctIndex;
         const fast = (Date.now() - questionStartTime) < 5000;
 
-        // Visual feedback
+        // Audio + visual feedback
+        if (correct) {
+            AudioSystem.playCorrect();
+        } else {
+            AudioSystem.playWrong();
+        }
+
         const btns = document.querySelectorAll('#answer-grid .answer-btn');
         btns.forEach((btn, i) => {
             btn.disabled = true;
@@ -288,12 +315,60 @@
 
         // Execute battle turn after brief delay
         setTimeout(() => {
+            const prevState = BattleEngine.getState();
+            const prevOppHP = prevState.opponent[prevState.opponentActive].hp;
+            const prevPlayerHP = prevState.player[prevState.playerActive].hp;
+
             const state = BattleEngine.playerTurn(battleAction, correct, fast);
             document.getElementById('question-area').style.display = 'none';
+
+            // Play battle SFX based on what happened
+            const currOpp = state.opponent[state.opponentActive];
+            const currPlayer = state.player[state.playerActive];
+
+            // Player attack sound
+            if (correct) {
+                if (battleAction === 'ability') {
+                    AudioSystem.playAbility();
+                } else {
+                    AudioSystem.playAttack();
+                }
+            } else {
+                AudioSystem.playWeakAttack();
+            }
+
+            // Check if opponent took damage
+            if (currOpp.hp < prevOppHP) {
+                setTimeout(() => AudioSystem.playDamage(), 150);
+            }
+
+            // Check if opponent fainted
+            if (prevOppHP > 0 && currOpp.hp <= 0) {
+                setTimeout(() => AudioSystem.playFainted(), 300);
+            }
+
+            // Check if player took damage from opponent counterattack
+            if (currPlayer.hp < prevPlayerHP) {
+                setTimeout(() => AudioSystem.playDamage(), 400);
+            }
+
+            // Check if player creature fainted
+            if (prevPlayerHP > 0 && currPlayer.hp <= 0) {
+                setTimeout(() => AudioSystem.playFainted(), 550);
+            }
+
             _updateBattleUI();
 
             if (state.finished) {
-                setTimeout(() => _showResults(state), 1000);
+                AudioSystem.stopMusic();
+                setTimeout(() => {
+                    if (state.winner === 'player') {
+                        AudioSystem.playVictory();
+                    } else {
+                        AudioSystem.playDefeat();
+                    }
+                    _showResults(state);
+                }, 1000);
             } else {
                 document.getElementById('battle-actions').style.display = 'flex';
             }
@@ -394,6 +469,7 @@
     // === PACK OPENING ===
     function _showPackOpening(cardIds, title) {
         showScreen('pack');
+        AudioSystem.playPackOpen();
         document.getElementById('pack-title').textContent = title || 'Card Pack!';
         const container = document.getElementById('pack-cards');
 
@@ -411,6 +487,7 @@
             card.addEventListener('click', () => {
                 if (card.classList.contains('revealed')) return;
                 card.classList.add('revealed');
+                AudioSystem.playCardReveal();
                 const spans = card.querySelectorAll('span');
                 spans[0].style.display = 'block';  // show emoji
                 spans[1].style.display = 'none';    // hide back
