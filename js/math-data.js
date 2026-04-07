@@ -1,4 +1,4 @@
-// ===== MATH QUESTION DATA V37 =====
+// ===== MATH QUESTION DATA V38 =====
 const MathData = {
     topics: [
         { id: 'counting', name: 'Counting', icon: '🔢' },
@@ -23,7 +23,12 @@ const MathData = {
         { id: 'even-odd', name: 'Even & Odd', icon: '🔢' },
         { id: 'skip-counting', name: 'Skip Counting', icon: '🔄' },
         { id: 'measurement', name: 'Measurement', icon: '📏' },
-        { id: 'three-digit', name: 'Big Numbers', icon: '💯' }
+        { id: 'three-digit', name: 'Big Numbers', icon: '💯' },
+        // V38: 3rd grade topics
+        { id: 'division', name: 'Division', icon: '➗' },
+        { id: 'area-perimeter', name: 'Area & Perimeter', icon: '📐' },
+        { id: 'rounding', name: 'Rounding', icon: '🎯' },
+        { id: 'function-tables', name: 'Patterns & Rules', icon: '📊' }
     ],
 
     generate(topic, level) {
@@ -50,7 +55,12 @@ const MathData = {
             'even-odd': this._evenOdd,
             'skip-counting': this._skipCounting2,
             measurement: this._measurement,
-            'three-digit': this._threeDigit
+            'three-digit': this._threeDigit,
+            // V38: 3rd grade
+            division: this._division,
+            'area-perimeter': this._areaPerimeter,
+            rounding: this._rounding,
+            'function-tables': this._functionTables
         };
 
         const gen = generators[topic];
@@ -94,6 +104,10 @@ const MathData = {
 
     // ---- COUNTING ----
     _counting(level) {
+        // V38: 3rd grade counting redirects to skip-counting/patterns
+        if (level >= 8) {
+            return this._skipCounting3rd(level);
+        }
         // V20: 2nd grade counting — count by 2s/5s/10s to 100, backwards, to 1000
         if (level >= 6) {
             return this._counting2nd(level);
@@ -352,6 +366,10 @@ const MathData = {
 
     // ---- ADDITION ----
     _addition(level) {
+        // V38: 3rd grade addition — 3-digit with regrouping
+        if (level >= 8) {
+            return this._addition3rd(level);
+        }
         // V20: 2nd grade addition — 2-digit + 2-digit with regrouping
         if (level >= 6) {
             return this._addition2nd(level);
@@ -486,6 +504,10 @@ const MathData = {
 
     // ---- SUBTRACTION ----
     _subtraction(level) {
+        // V38: 3rd grade subtraction — 3-digit with regrouping
+        if (level >= 8) {
+            return this._subtraction3rd(level);
+        }
         // V20: 2nd grade subtraction — 2-digit with regrouping
         if (level >= 6) {
             return this._subtraction2nd(level);
@@ -1115,6 +1137,11 @@ const MathData = {
     _wordProblems(level) {
         const names = ['Tom', 'Sara', 'Jake', 'Mia', 'Ben', 'Lily', 'Max', 'Emma'];
         const name = names[this._rand(0, names.length - 1)];
+
+        // V38: 3rd grade word problems
+        if (level >= 8) {
+            return this._wordProblems3rd(name, level);
+        }
 
         // V37: Comparison word problems (20% at K+)
         if (level >= 2 && Math.random() < 0.2) {
@@ -3095,6 +3122,10 @@ const MathData = {
 
     // ---- MONEY ----
     _money(level) {
+        // V38: 3rd grade money — dollars and cents, making change
+        if (level >= 8) {
+            return this._money3rd(level);
+        }
         const coins = [
             { name: 'penny', plural: 'pennies', value: 1, emoji: '🪙' },
             { name: 'nickel', plural: 'nickels', value: 5, emoji: '🪙' },
@@ -3258,6 +3289,10 @@ const MathData = {
 
     // ---- TIME ----
     _time(level) {
+        // V38: 3rd grade time — elapsed time with minutes
+        if (level >= 8) {
+            return this._time3rd(level);
+        }
         const hourWords = ['twelve', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
 
         if (level <= 6) {
@@ -3439,6 +3474,10 @@ const MathData = {
 
     // ---- MULTIPLICATION ----
     _multiplication(level) {
+        // V38: 3rd grade multiplication — facts to 10x10, properties
+        if (level >= 8) {
+            return this._multiplication3rd(level);
+        }
         if (level <= 6) {
             // Level 6: Equal groups with pictures, repeated addition, arrays
             const templateType = this._rand(0, 3);
@@ -3589,6 +3628,10 @@ const MathData = {
 
     // ---- FRACTIONS ----
     _fractions(level) {
+        // V38: 3rd grade fractions — number lines, comparing, equivalent
+        if (level >= 8) {
+            return this._fractions3rd(level);
+        }
         if (level <= 6) {
             // Level 6: Identify halves/thirds/fourths, shade fractions
             const templateType = this._rand(0, 3);
@@ -4006,6 +4049,10 @@ const MathData = {
 
     // ---- MEASUREMENT ----
     _measurement(level) {
+        // V38: 3rd grade measurement — area/perimeter handled by own topic
+        if (level >= 8) {
+            return this._measurement3rd(level);
+        }
         if (level <= 6) {
             // Level 6: Compare lengths, measure with unit blocks
             const templateType = this._rand(0, 3);
@@ -4184,6 +4231,10 @@ const MathData = {
 
     // ---- THREE-DIGIT NUMBERS ----
     _threeDigit(level) {
+        // V38: 3rd grade big numbers — rounding, 4-digit, place value to thousands
+        if (level >= 8) {
+            return this._threeDigit3rd(level);
+        }
         if (level <= 6) {
             // Level 6: Read & write numbers to 999, identify hundreds/tens/ones
             const templateType = this._rand(0, 3);
@@ -4348,6 +4399,1387 @@ const MathData = {
                     explanationSpeak: `The ${place.name} digit in ${n} is ${correct}!`
                 };
             }
+        }
+    },
+
+    // =====================================================
+    // V38: 3RD GRADE GENERATORS (levels 8-9)
+    // =====================================================
+
+    // ---- 3RD GRADE ADDITION — 3-digit + 3-digit with regrouping ----
+    _addition3rd(level) {
+        const templateType = this._rand(0, 3);
+        if (templateType <= 1) {
+            // 3-digit + 3-digit
+            const a = this._rand(level >= 9 ? 200 : 100, level >= 9 ? 799 : 499);
+            const b = this._rand(level >= 9 ? 100 : 100, level >= 9 ? 799 : 499);
+            const correct = a + b;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(100, correct - 50), correct + 50);
+            const answers = this._shuffle([correct, ...wrongs]);
+            const regroup = (a % 10 + b % 10) >= 10 || (Math.floor(a / 10) % 10 + Math.floor(b / 10) % 10) >= 10;
+            return {
+                question: `${a} + ${b} = ?`,
+                questionSpeak: `What is ${a} plus ${b}?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'addition',
+                subtype: '3-digit-add',
+                explanation: `${a} + ${b} = ${correct}!${regroup ? ' Remember to regroup!' : ''}`,
+                explanationSpeak: `${a} plus ${b} equals ${correct}!`
+            };
+        } else if (templateType === 2) {
+            // 3-digit + 2-digit
+            const a = this._rand(100, 899);
+            const b = this._rand(10, 99);
+            const correct = a + b;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(100, correct - 30), correct + 30);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `${a} + ${b} = ?`,
+                questionSpeak: `What is ${a} plus ${b}?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'addition',
+                subtype: '3-digit-add',
+                explanation: `${a} + ${b} = ${correct}!`,
+                explanationSpeak: `${a} plus ${b} equals ${correct}!`
+            };
+        } else {
+            // Missing addend with 3-digit numbers
+            const total = this._rand(200, 999);
+            const a = this._rand(100, total - 50);
+            const correct = total - a;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(10, correct - 30), correct + 30);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `${a} + ___ = ${total}`,
+                questionSpeak: `${a} plus what equals ${total}?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'addition',
+                subtype: '3-digit-missing',
+                explanation: `${a} + ${correct} = ${total}!`,
+                explanationSpeak: `${a} plus ${correct} equals ${total}!`
+            };
+        }
+    },
+
+    // ---- 3RD GRADE SUBTRACTION — 3-digit with regrouping ----
+    _subtraction3rd(level) {
+        const templateType = this._rand(0, 3);
+        if (templateType <= 1) {
+            // 3-digit - 3-digit
+            const a = this._rand(level >= 9 ? 400 : 200, 999);
+            const b = this._rand(level >= 9 ? 100 : 100, a - 50);
+            const correct = a - b;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(0, correct - 50), correct + 50);
+            const answers = this._shuffle([correct, ...wrongs]);
+            const regroup = (a % 10) < (b % 10);
+            return {
+                question: `${a} - ${b} = ?`,
+                questionSpeak: `What is ${a} minus ${b}?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'subtraction',
+                subtype: '3-digit-sub',
+                explanation: `${a} - ${b} = ${correct}!${regroup ? ' You need to borrow!' : ''}`,
+                explanationSpeak: `${a} minus ${b} equals ${correct}!`
+            };
+        } else if (templateType === 2) {
+            // 3-digit - 2-digit
+            const a = this._rand(200, 999);
+            const b = this._rand(10, 99);
+            const correct = a - b;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(10, correct - 30), correct + 30);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `${a} - ${b} = ?`,
+                questionSpeak: `What is ${a} minus ${b}?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'subtraction',
+                subtype: '3-digit-sub',
+                explanation: `${a} - ${b} = ${correct}!`,
+                explanationSpeak: `${a} minus ${b} equals ${correct}!`
+            };
+        } else {
+            // "How much more?" comparison
+            const a = this._rand(200, 800);
+            const b = this._rand(100, a - 30);
+            const correct = a - b;
+            const names = ['Jake', 'Mia', 'Ben', 'Sara'];
+            const n1 = names[this._rand(0, 3)];
+            let n2;
+            do { n2 = names[this._rand(0, 3)]; } while (n2 === n1);
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(10, correct - 50), correct + 50);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `${n1} scored ${a} points.\n${n2} scored ${b}.\nHow many more did\n${n1} score?`,
+                questionSpeak: `${n1} scored ${a} points. ${n2} scored ${b}. How many more did ${n1} score?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'subtraction',
+                subtype: '3-digit-compare',
+                explanation: `${a} - ${b} = ${correct}. ${n1} scored ${correct} more!`,
+                explanationSpeak: `${a} minus ${b} equals ${correct}!`
+            };
+        }
+    },
+
+    // ---- 3RD GRADE MULTIPLICATION — facts to 10x10 ----
+    _multiplication3rd(level) {
+        const templateType = this._rand(0, 4);
+
+        if (templateType === 0) {
+            // Basic multiplication facts up to 10x10
+            const a = this._rand(2, 10);
+            const b = this._rand(2, level >= 9 ? 10 : 9);
+            const correct = a * b;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(2, correct - 10), correct + 10);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `${a} x ${b} = ?`,
+                questionSpeak: `What is ${a} times ${b}?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'multiplication',
+                subtype: 'facts-10',
+                explanation: `${a} x ${b} = ${correct}!`,
+                explanationSpeak: `${a} times ${b} equals ${correct}!`
+            };
+        } else if (templateType === 1) {
+            // Missing factor: ___ x 7 = 42
+            const a = this._rand(2, 10);
+            const b = this._rand(2, 10);
+            const product = a * b;
+            const wrongs = this._makeWrongAnswers(a, 3, 1, 12);
+            const answers = this._shuffle([a, ...wrongs]);
+            return {
+                question: `___ x ${b} = ${product}`,
+                questionSpeak: `What times ${b} equals ${product}?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(a),
+                topic: 'multiplication',
+                subtype: 'missing-factor-10',
+                explanation: `${a} x ${b} = ${product}! The missing number is ${a}!`,
+                explanationSpeak: `${a} times ${b} equals ${product}!`
+            };
+        } else if (templateType === 2) {
+            // Commutative property: "Which equals the same as 3 x 7?"
+            const a = this._rand(2, 9);
+            const b = this._rand(2, 9);
+            if (a === b) return this._multiplication3rd(level);
+            const product = a * b;
+            const correct = `${b} x ${a}`;
+            const wrongs = [
+                `${a} x ${a}`,
+                `${b} x ${b}`,
+                `${a + 1} x ${b}`
+            ];
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `Which equals the same\nas ${a} x ${b}?`,
+                questionSpeak: `Which gives the same answer as ${a} times ${b}?`,
+                answers,
+                correctIndex: answers.indexOf(correct),
+                topic: 'multiplication',
+                subtype: 'commutative',
+                explanation: `${a} x ${b} = ${b} x ${a} = ${product}! Order doesn't matter in multiplication!`,
+                explanationSpeak: `${a} times ${b} and ${b} times ${a} both equal ${product}!`
+            };
+        } else if (templateType === 3) {
+            // Distributive property visual: 6 x 7 = 6 x 5 + 6 x 2
+            const a = this._rand(3, 8);
+            const b = this._rand(6, 9);
+            const split1 = this._rand(2, b - 2);
+            const split2 = b - split1;
+            const product = a * b;
+            const correct = product;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(10, correct - 10), correct + 10);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `${a} x ${b} = ?\nHint: ${a} x ${split1} = ${a * split1}\n${a} x ${split2} = ${a * split2}`,
+                questionSpeak: `What is ${a} times ${b}? Use the hint: ${a} times ${split1} is ${a * split1}, and ${a} times ${split2} is ${a * split2}.`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'multiplication',
+                subtype: 'distributive',
+                explanation: `${a} x ${split1} + ${a} x ${split2} = ${a * split1} + ${a * split2} = ${product}!`,
+                explanationSpeak: `${a * split1} plus ${a * split2} equals ${product}!`
+            };
+        } else {
+            // Word problem with larger facts
+            const names = ['Max', 'Lily', 'Jake', 'Emma'];
+            const name = names[this._rand(0, 3)];
+            const items = ['rows of desks', 'shelves', 'pages', 'packs', 'teams'];
+            const contents = ['seats', 'books', 'stickers', 'cards', 'players'];
+            const idx = this._rand(0, items.length - 1);
+            const groups = this._rand(3, 9);
+            const per = this._rand(3, 9);
+            const correct = groups * per;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(5, correct - 10), correct + 10);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `There are ${groups} ${items[idx]}\nwith ${per} ${contents[idx]} each.\nHow many ${contents[idx]} total?`,
+                questionSpeak: `There are ${groups} ${items[idx]} with ${per} ${contents[idx]} each. How many total?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'multiplication',
+                subtype: 'word-problem-3rd',
+                explanation: `${groups} x ${per} = ${correct} ${contents[idx]}!`,
+                explanationSpeak: `${groups} times ${per} equals ${correct}!`
+            };
+        }
+    },
+
+    // ---- 3RD GRADE DIVISION ----
+    _division(level) {
+        const templateType = this._rand(0, 4);
+
+        if (templateType === 0) {
+            // Basic division facts
+            const divisor = this._rand(2, level >= 9 ? 10 : 7);
+            const quotient = this._rand(1, level >= 9 ? 10 : 8);
+            const dividend = divisor * quotient;
+            const correct = quotient;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(1, correct - 3), correct + 3);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `${dividend} ÷ ${divisor} = ?`,
+                questionSpeak: `What is ${dividend} divided by ${divisor}?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'division',
+                subtype: 'basic-facts',
+                explanation: `${dividend} ÷ ${divisor} = ${correct}! Because ${correct} x ${divisor} = ${dividend}!`,
+                explanationSpeak: `${dividend} divided by ${divisor} equals ${correct}!`
+            };
+        } else if (templateType === 1) {
+            // Relate to multiplication: "If 6 x 4 = 24, then 24 ÷ 6 = ?"
+            const a = this._rand(2, 9);
+            const b = this._rand(2, 9);
+            const product = a * b;
+            const correct = b;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(1, correct - 3), correct + 4);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `If ${a} x ${b} = ${product},\nthen ${product} ÷ ${a} = ?`,
+                questionSpeak: `If ${a} times ${b} equals ${product}, then what is ${product} divided by ${a}?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'division',
+                subtype: 'relate-multiply',
+                explanation: `${product} ÷ ${a} = ${correct}! Multiplication and division are related!`,
+                explanationSpeak: `${product} divided by ${a} equals ${correct}!`
+            };
+        } else if (templateType === 2) {
+            // Equal sharing word problem
+            const total = this._rand(2, 8) * this._rand(2, 8);
+            const groups = [2, 3, 4, 5, 6, 7, 8].filter(g => total % g === 0 && total / g >= 2);
+            if (groups.length === 0) return this._division(level);
+            const group = groups[this._rand(0, groups.length - 1)];
+            const correct = total / group;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(1, correct - 3), correct + 3);
+            const answers = this._shuffle([correct, ...wrongs]);
+            const names = ['Emma', 'Jake', 'Mia', 'Ben'];
+            const name = names[this._rand(0, 3)];
+            return {
+                question: `${name} has ${total} stickers to share\nequally among ${group} friends.\nHow many each?`,
+                questionSpeak: `${name} has ${total} stickers to share equally among ${group} friends. How many does each friend get?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'division',
+                subtype: 'equal-sharing',
+                explanation: `${total} ÷ ${group} = ${correct} each!`,
+                explanationSpeak: `${total} divided by ${group} equals ${correct} each!`
+            };
+        } else if (templateType === 3) {
+            // "How many groups?" word problem
+            const perGroup = this._rand(2, 8);
+            const groups = this._rand(2, 8);
+            const total = perGroup * groups;
+            const correct = groups;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(1, correct - 3), correct + 3);
+            const answers = this._shuffle([correct, ...wrongs]);
+            const items = ['muffins', 'cookies', 'flowers', 'books', 'balls'];
+            const containers = ['boxes', 'bags', 'vases', 'shelves', 'bins'];
+            const idx = this._rand(0, items.length - 1);
+            return {
+                question: `${total} ${items[idx]} are put into groups\nof ${perGroup}. How many ${containers[idx]}?`,
+                questionSpeak: `${total} ${items[idx]} are put into groups of ${perGroup}. How many ${containers[idx]} do you need?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'division',
+                subtype: 'how-many-groups',
+                explanation: `${total} ÷ ${perGroup} = ${correct} ${containers[idx]}!`,
+                explanationSpeak: `You need ${correct} ${containers[idx]}!`
+            };
+        } else {
+            // Missing dividend: ___ ÷ 5 = 3
+            const divisor = this._rand(2, 9);
+            const quotient = this._rand(2, 9);
+            const correct = divisor * quotient;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(2, correct - 10), correct + 10);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `___ ÷ ${divisor} = ${quotient}`,
+                questionSpeak: `What number divided by ${divisor} equals ${quotient}?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'division',
+                subtype: 'missing-dividend',
+                explanation: `${correct} ÷ ${divisor} = ${quotient}! Because ${quotient} x ${divisor} = ${correct}!`,
+                explanationSpeak: `${correct} divided by ${divisor} equals ${quotient}!`
+            };
+        }
+    },
+
+    // ---- 3RD GRADE FRACTIONS — number lines, comparing, equivalent ----
+    _fractions3rd(level) {
+        const templateType = this._rand(0, 4);
+
+        if (templateType === 0) {
+            // Fraction on a number line (0 to 1)
+            const den = [3, 4, 6, 8][this._rand(0, level >= 9 ? 3 : 2)];
+            const num = this._rand(1, den - 1);
+            const correct = `${num}/${den}`;
+            const wrongs = [];
+            let attempts = 0;
+            while (wrongs.length < 3 && attempts < 30) {
+                const wn = this._rand(1, den);
+                const w = `${wn}/${den}`;
+                if (w !== correct && !wrongs.includes(w)) wrongs.push(w);
+                attempts++;
+            }
+            // Fill remaining with different-denominator fractions if needed
+            const fallbacks = ['1/3', '2/5', '3/8', '1/6', '5/8', '3/4'];
+            for (const fb of fallbacks) {
+                if (wrongs.length >= 3) break;
+                if (fb !== correct && !wrongs.includes(fb)) wrongs.push(fb);
+            }
+            const answers = this._shuffle([correct, ...wrongs]);
+            const marks = den;
+            const arrow = num;
+            const line = '0' + '---|'.repeat(marks).slice(0, -1) + '---1';
+            return {
+                question: `What fraction does the\narrow point to?\n${line}\n↑ mark ${arrow} of ${marks}`,
+                questionSpeak: `On a number line from 0 to 1 divided into ${marks} parts, the arrow points to mark ${arrow}. What fraction is that?`,
+                answers,
+                correctIndex: answers.indexOf(correct),
+                topic: 'fractions',
+                subtype: 'number-line',
+                explanation: `Mark ${arrow} out of ${marks} = ${correct}!`,
+                explanationSpeak: `That's ${num} out of ${den}, or ${correct}!`
+            };
+        } else if (templateType === 1) {
+            // Compare fractions with same denominator
+            const den = [3, 4, 6, 8][this._rand(0, 3)];
+            let a, b;
+            do {
+                a = this._rand(1, den - 1);
+                b = this._rand(1, den - 1);
+            } while (a === b);
+            const correctSymbol = a > b ? '>' : '<';
+            const answers = this._shuffle(['>', '<', '=']);
+            return {
+                question: `${a}/${den} ___ ${b}/${den}\nWhich sign?`,
+                questionSpeak: `Compare ${a} over ${den} and ${b} over ${den}. Which is bigger?`,
+                answers,
+                correctIndex: answers.indexOf(correctSymbol),
+                topic: 'fractions',
+                subtype: 'compare-same-den',
+                explanation: `${a}/${den} ${correctSymbol} ${b}/${den}! Same denominator, so compare numerators: ${Math.max(a, b)} > ${Math.min(a, b)}!`,
+                explanationSpeak: `${Math.max(a, b)} over ${den} is bigger because ${Math.max(a, b)} is more than ${Math.min(a, b)}!`
+            };
+        } else if (templateType === 2) {
+            // Compare fractions with same numerator
+            const num = this._rand(1, 3);
+            let d1, d2;
+            do {
+                d1 = this._rand(2, 8);
+                d2 = this._rand(2, 8);
+            } while (d1 === d2 || num >= d1 || num >= d2);
+            const correctSymbol = d1 < d2 ? '>' : '<';
+            const answers = this._shuffle(['>', '<', '=']);
+            return {
+                question: `${num}/${d1} ___ ${num}/${d2}\nWhich sign?`,
+                questionSpeak: `Compare ${num} over ${d1} and ${num} over ${d2}.`,
+                answers,
+                correctIndex: answers.indexOf(correctSymbol),
+                topic: 'fractions',
+                subtype: 'compare-same-num',
+                explanation: `${num}/${d1} ${correctSymbol} ${num}/${d2}! Same numerator means smaller denominator = bigger pieces!`,
+                explanationSpeak: `Smaller denominator means bigger pieces!`
+            };
+        } else if (templateType === 3) {
+            // Equivalent fractions
+            const pairs = [
+                { a: '1/2', b: '2/4', explain: '1/2 and 2/4 are the same amount!' },
+                { a: '1/2', b: '3/6', explain: '1/2 and 3/6 are the same amount!' },
+                { a: '1/2', b: '4/8', explain: '1/2 and 4/8 are the same amount!' },
+                { a: '1/3', b: '2/6', explain: '1/3 and 2/6 are the same amount!' },
+                { a: '2/3', b: '4/6', explain: '2/3 and 4/6 are the same amount!' },
+                { a: '1/4', b: '2/8', explain: '1/4 and 2/8 are the same amount!' },
+                { a: '3/4', b: '6/8', explain: '3/4 and 6/8 are the same amount!' }
+            ];
+            const pair = pairs[this._rand(0, pairs.length - 1)];
+            const correct = pair.b;
+            const allFracs = ['1/2', '2/4', '3/6', '4/8', '1/3', '2/6', '2/3', '4/6', '1/4', '2/8', '3/4', '6/8', '1/5', '3/5', '5/6', '7/8'];
+            const wrongs = allFracs.filter(f => f !== pair.a && f !== pair.b);
+            const answers = this._shuffle([correct, ...this._shuffle(wrongs).slice(0, 3)]);
+            return {
+                question: `Which fraction equals ${pair.a}?`,
+                questionSpeak: `Which fraction is equal to ${pair.a}?`,
+                answers,
+                correctIndex: answers.indexOf(correct),
+                topic: 'fractions',
+                subtype: 'equivalent',
+                explanation: pair.explain,
+                explanationSpeak: pair.explain
+            };
+        } else {
+            // Whole numbers as fractions: 3 = ?/1, or 1 = 4/4
+            const roll = Math.random();
+            if (roll < 0.5) {
+                const whole = this._rand(1, 6);
+                const correct = `${whole}/1`;
+                const wrongs = [`1/${whole}`, `${whole}/${whole}`, `${whole + 1}/1`];
+                const answers = this._shuffle([correct, ...wrongs]);
+                return {
+                    question: `Write ${whole} as a fraction:`,
+                    questionSpeak: `How do you write ${whole} as a fraction?`,
+                    answers,
+                    correctIndex: answers.indexOf(correct),
+                    topic: 'fractions',
+                    subtype: 'whole-as-fraction',
+                    explanation: `${whole} = ${whole}/1! Any whole number over 1 is itself!`,
+                    explanationSpeak: `${whole} equals ${whole} over 1!`
+                };
+            } else {
+                const den = [2, 3, 4, 6, 8][this._rand(0, 4)];
+                const correct = `${den}/${den}`;
+                const wrongs = [`1/${den}`, `${den}/1`, `${den - 1}/${den}`];
+                const answers = this._shuffle([correct, ...wrongs]);
+                return {
+                    question: `Which fraction equals 1 whole?`,
+                    questionSpeak: `Which fraction is equal to 1 whole?`,
+                    answers,
+                    correctIndex: answers.indexOf(correct),
+                    topic: 'fractions',
+                    subtype: 'whole-fraction',
+                    explanation: `${den}/${den} = 1 whole! When numerator equals denominator, it's 1!`,
+                    explanationSpeak: `${den} over ${den} equals 1 whole!`
+                };
+            }
+        }
+    },
+
+    // ---- 3RD GRADE TIME — elapsed time with hours and minutes ----
+    _time3rd(level) {
+        const templateType = this._rand(0, 4);
+
+        if (templateType === 0) {
+            // Elapsed time in minutes (15/30/45 min intervals)
+            const startHour = this._rand(1, 11);
+            const startMin = [0, 15, 30][this._rand(0, 2)];
+            const elapsed = [15, 30, 45][this._rand(0, 2)];
+            let endMin = startMin + elapsed;
+            let endHour = startHour;
+            if (endMin >= 60) {
+                endMin -= 60;
+                endHour = endHour + 1;
+                if (endHour > 12) endHour = 1;
+            }
+            const startStr = `${startHour}:${startMin < 10 ? '0' : ''}${startMin}`;
+            const correctStr = `${endHour}:${endMin < 10 ? '0' : ''}${endMin}`;
+            const wrongs = [];
+            while (wrongs.length < 3) {
+                const wh = this._rand(1, 12);
+                const wm = [0, 15, 30, 45][this._rand(0, 3)];
+                const w = `${wh}:${wm < 10 ? '0' : ''}${wm}`;
+                if (w !== correctStr && !wrongs.includes(w)) wrongs.push(w);
+            }
+            const answers = this._shuffle([correctStr, ...wrongs]);
+            return {
+                question: `It is ${startStr}.\n${elapsed} minutes later = ?`,
+                questionSpeak: `It is ${startStr}. What time will it be ${elapsed} minutes later?`,
+                answers,
+                correctIndex: answers.indexOf(correctStr),
+                topic: 'time',
+                subtype: 'elapsed-minutes',
+                explanation: `${startStr} + ${elapsed} minutes = ${correctStr}!`,
+                explanationSpeak: `${elapsed} minutes after ${startStr} is ${correctStr}!`
+            };
+        } else if (templateType === 1) {
+            // Elapsed time in hours and minutes
+            const startHour = this._rand(1, 10);
+            const elapsedHours = this._rand(1, 3);
+            const elapsedMin = [0, 15, 30][this._rand(0, 2)];
+            let endHour = startHour + elapsedHours;
+            if (endHour > 12) endHour -= 12;
+            const startStr = `${startHour}:00`;
+            const correctStr = `${endHour}:${elapsedMin < 10 ? '0' : ''}${elapsedMin}`;
+            const wrongs = [];
+            while (wrongs.length < 3) {
+                const wh = this._rand(1, 12);
+                const wm = [0, 15, 30, 45][this._rand(0, 3)];
+                const w = `${wh}:${wm < 10 ? '0' : ''}${wm}`;
+                if (w !== correctStr && !wrongs.includes(w)) wrongs.push(w);
+            }
+            const answers = this._shuffle([correctStr, ...wrongs]);
+            const elapsedDesc = elapsedMin > 0 ? `${elapsedHours} hour${elapsedHours > 1 ? 's' : ''} and ${elapsedMin} minutes` : `${elapsedHours} hour${elapsedHours > 1 ? 's' : ''}`;
+            return {
+                question: `Start: ${startStr}\n${elapsedDesc} later = ?`,
+                questionSpeak: `It starts at ${startStr}. What time is it ${elapsedDesc} later?`,
+                answers,
+                correctIndex: answers.indexOf(correctStr),
+                topic: 'time',
+                subtype: 'elapsed-hr-min',
+                explanation: `${startStr} + ${elapsedDesc} = ${correctStr}!`,
+                explanationSpeak: `${elapsedDesc} after ${startStr} is ${correctStr}!`
+            };
+        } else if (templateType === 2) {
+            // "How much time passed?"
+            const startHour = this._rand(1, 10);
+            const elapsed = this._rand(1, 4);
+            const endHour = startHour + elapsed;
+            const correct = elapsed;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(1, correct - 2), correct + 3);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `School starts at ${startHour}:00.\nSchool ends at ${endHour}:00.\nHow many hours long?`,
+                questionSpeak: `School starts at ${startHour} and ends at ${endHour}. How many hours is that?`,
+                answers: answers.map(v => `${v} hr${v > 1 ? 's' : ''}`),
+                correctIndex: answers.indexOf(correct),
+                topic: 'time',
+                subtype: 'duration',
+                explanation: `${endHour} - ${startHour} = ${correct} hours!`,
+                explanationSpeak: `That's ${correct} hours!`
+            };
+        } else if (templateType === 3) {
+            // Read to 1-minute intervals
+            const hour = this._rand(1, 12);
+            const min = this._rand(1, 59);
+            const minStr = min < 10 ? `0${min}` : `${min}`;
+            const correct = `${hour}:${minStr}`;
+            const wrongs = [];
+            while (wrongs.length < 3) {
+                const wh = this._rand(1, 12);
+                const wm = this._rand(0, 59);
+                const wmStr = wm < 10 ? `0${wm}` : `${wm}`;
+                const w = `${wh}:${wmStr}`;
+                if (w !== correct && !wrongs.includes(w)) wrongs.push(w);
+            }
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `🕐 Hour hand near ${hour}.\nMinute hand on ${min}.\nWhat time is it?`,
+                questionSpeak: `The hour hand is near ${hour} and ${min} minutes have passed. What time is it?`,
+                answers,
+                correctIndex: answers.indexOf(correct),
+                topic: 'time',
+                subtype: 'exact-minute',
+                explanation: `It's ${correct}!`,
+                explanationSpeak: `The time is ${hour} ${min}!`
+            };
+        } else {
+            // Time word problem
+            const activities = [
+                { name: 'a movie', startH: 2, startM: 0, durH: 1, durM: 45 },
+                { name: 'soccer practice', startH: 3, startM: 30, durH: 1, durM: 30 },
+                { name: 'a school day', startH: 8, startM: 0, durH: 7, durM: 0 },
+                { name: 'art class', startH: 10, startM: 15, durH: 0, durM: 45 },
+                { name: 'a bike ride', startH: 4, startM: 0, durH: 1, durM: 15 }
+            ];
+            const a = activities[this._rand(0, activities.length - 1)];
+            let endH = a.startH + a.durH;
+            let endM = a.startM + a.durM;
+            if (endM >= 60) { endM -= 60; endH++; }
+            const startStr = `${a.startH}:${a.startM < 10 ? '0' : ''}${a.startM}`;
+            const endStr = `${endH}:${endM < 10 ? '0' : ''}${endM}`;
+            const correctStr = endStr;
+            const wrongs = [];
+            while (wrongs.length < 3) {
+                const wh = this._rand(1, 12);
+                const wm = [0, 15, 30, 45][this._rand(0, 3)];
+                const w = `${wh}:${wm < 10 ? '0' : ''}${wm}`;
+                if (w !== correctStr && !wrongs.includes(w)) wrongs.push(w);
+            }
+            const answers = this._shuffle([correctStr, ...wrongs]);
+            const durStr = a.durH > 0 && a.durM > 0 ? `${a.durH} hr ${a.durM} min` : a.durH > 0 ? `${a.durH} hours` : `${a.durM} minutes`;
+            return {
+                question: `${a.name} starts at ${startStr}\nand lasts ${durStr}.\nWhen does it end?`,
+                questionSpeak: `${a.name} starts at ${startStr} and lasts ${durStr}. When does it end?`,
+                answers,
+                correctIndex: answers.indexOf(correctStr),
+                topic: 'time',
+                subtype: 'word-problem-time',
+                explanation: `${startStr} + ${durStr} = ${correctStr}!`,
+                explanationSpeak: `It ends at ${correctStr}!`
+            };
+        }
+    },
+
+    // ---- 3RD GRADE MONEY — dollars and cents ----
+    _money3rd(level) {
+        const templateType = this._rand(0, 3);
+
+        if (templateType === 0) {
+            // Add dollars and cents
+            const d1 = this._rand(1, 9);
+            const c1 = this._rand(0, 19) * 5;
+            const d2 = this._rand(1, 5);
+            const c2 = this._rand(0, 19) * 5;
+            let totalC = c1 + c2;
+            let totalD = d1 + d2;
+            if (totalC >= 100) { totalC -= 100; totalD++; }
+            const correct = `$${totalD}.${totalC < 10 ? '0' : ''}${totalC}`;
+            const wrongs = [];
+            while (wrongs.length < 3) {
+                const wd = this._rand(Math.max(1, totalD - 2), totalD + 3);
+                const wc = this._rand(0, 19) * 5;
+                const w = `$${wd}.${wc < 10 ? '0' : ''}${wc}`;
+                if (w !== correct && !wrongs.includes(w)) wrongs.push(w);
+            }
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `$${d1}.${c1 < 10 ? '0' : ''}${c1} + $${d2}.${c2 < 10 ? '0' : ''}${c2} = ?`,
+                questionSpeak: `What is ${d1} dollars ${c1} cents plus ${d2} dollars ${c2} cents?`,
+                answers,
+                correctIndex: answers.indexOf(correct),
+                topic: 'money',
+                subtype: 'add-dollars',
+                explanation: `The total is ${correct}!`,
+                explanationSpeak: `The total is ${totalD} dollars and ${totalC} cents!`
+            };
+        } else if (templateType === 1) {
+            // Make change from $5 or $10
+            const startAmount = Math.random() < 0.5 ? 5 : 10;
+            const price = this._rand(1, startAmount - 1) * 100 + this._rand(0, 19) * 5;
+            const changeCents = startAmount * 100 - price;
+            const changeD = Math.floor(changeCents / 100);
+            const changeC = changeCents % 100;
+            const correct = `$${changeD}.${changeC < 10 ? '0' : ''}${changeC}`;
+            const priceD = Math.floor(price / 100);
+            const priceC = price % 100;
+            const wrongs = [];
+            while (wrongs.length < 3) {
+                const wd = this._rand(0, startAmount);
+                const wc = this._rand(0, 19) * 5;
+                const w = `$${wd}.${wc < 10 ? '0' : ''}${wc}`;
+                if (w !== correct && !wrongs.includes(w)) wrongs.push(w);
+            }
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `You pay with $${startAmount}.00.\nItem costs $${priceD}.${priceC < 10 ? '0' : ''}${priceC}.\nChange back?`,
+                questionSpeak: `You pay with ${startAmount} dollars. The item costs ${priceD} dollars and ${priceC} cents. How much change?`,
+                answers,
+                correctIndex: answers.indexOf(correct),
+                topic: 'money',
+                subtype: 'change-dollars',
+                explanation: `$${startAmount}.00 - $${priceD}.${priceC < 10 ? '0' : ''}${priceC} = ${correct}!`,
+                explanationSpeak: `Your change is ${correct}!`
+            };
+        } else if (templateType === 2) {
+            // Multiply money (cost of multiple items)
+            const price = this._rand(1, 8) * 25; // 25 cent increments
+            const qty = this._rand(2, 6);
+            const totalCents = price * qty;
+            const totalD = Math.floor(totalCents / 100);
+            const totalC = totalCents % 100;
+            const correct = `$${totalD}.${totalC < 10 ? '0' : ''}${totalC}`;
+            const priceD = Math.floor(price / 100);
+            const priceC = price % 100;
+            const wrongs = [];
+            while (wrongs.length < 3) {
+                const wd = this._rand(Math.max(0, totalD - 2), totalD + 3);
+                const wc = this._rand(0, 19) * 5;
+                const w = `$${wd}.${wc < 10 ? '0' : ''}${wc}`;
+                if (w !== correct && !wrongs.includes(w)) wrongs.push(w);
+            }
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `Each snack costs $${priceD}.${priceC < 10 ? '0' : ''}${priceC}.\nBuy ${qty} snacks. Total?`,
+                questionSpeak: `Each snack costs ${priceD} dollars and ${priceC} cents. You buy ${qty}. What's the total?`,
+                answers,
+                correctIndex: answers.indexOf(correct),
+                topic: 'money',
+                subtype: 'multiply-money',
+                explanation: `${qty} x $${priceD}.${priceC < 10 ? '0' : ''}${priceC} = ${correct}!`,
+                explanationSpeak: `${qty} snacks cost ${correct}!`
+            };
+        } else {
+            // Compare prices
+            const p1 = this._rand(1, 15) * 50;
+            let p2;
+            do { p2 = this._rand(1, 15) * 50; } while (p2 === p1);
+            const d1 = Math.floor(p1 / 100);
+            const c1 = p1 % 100;
+            const d2 = Math.floor(p2 / 100);
+            const c2 = p2 % 100;
+            const correctSymbol = p1 > p2 ? '>' : '<';
+            const s1 = `$${d1}.${c1 < 10 ? '0' : ''}${c1}`;
+            const s2 = `$${d2}.${c2 < 10 ? '0' : ''}${c2}`;
+            const answers = this._shuffle(['>', '<', '=']);
+            return {
+                question: `${s1} ___ ${s2}\nWhich sign?`,
+                questionSpeak: `Compare ${s1} and ${s2}. Which is more?`,
+                answers,
+                correctIndex: answers.indexOf(correctSymbol),
+                topic: 'money',
+                subtype: 'compare-dollars',
+                explanation: `${s1} ${correctSymbol} ${s2}!`,
+                explanationSpeak: `${p1 > p2 ? s1 : s2} is more!`
+            };
+        }
+    },
+
+    // ---- 3RD GRADE MEASUREMENT — liquid volume, mass ----
+    _measurement3rd(level) {
+        const templateType = this._rand(0, 3);
+
+        if (templateType === 0) {
+            // Liquid volume: liters
+            const questions = [
+                { q: 'A bathtub holds about...', correct: '150 liters', wrongs: ['5 liters', '15 liters', '1500 liters'] },
+                { q: 'A water bottle holds about...', correct: '1 liter', wrongs: ['10 liters', '100 liters', '50 liters'] },
+                { q: 'A fish tank holds about...', correct: '40 liters', wrongs: ['4 liters', '400 liters', '1 liter'] },
+                { q: 'A teaspoon holds about...', correct: '5 mL', wrongs: ['5 liters', '50 mL', '500 mL'] }
+            ];
+            const qd = questions[this._rand(0, questions.length - 1)];
+            const answers = this._shuffle([qd.correct, ...qd.wrongs]);
+            return {
+                question: qd.q,
+                questionSpeak: qd.q,
+                answers,
+                correctIndex: answers.indexOf(qd.correct),
+                topic: 'measurement',
+                subtype: 'liquid-volume',
+                explanation: `The answer is ${qd.correct}!`,
+                explanationSpeak: `It holds about ${qd.correct}!`
+            };
+        } else if (templateType === 1) {
+            // Mass: grams and kilograms
+            const questions = [
+                { q: 'A paperclip weighs about...', correct: '1 gram', wrongs: ['1 kilogram', '10 grams', '100 grams'] },
+                { q: 'A textbook weighs about...', correct: '1 kilogram', wrongs: ['1 gram', '10 grams', '100 kilograms'] },
+                { q: 'A watermelon weighs about...', correct: '5 kilograms', wrongs: ['5 grams', '50 grams', '50 kilograms'] },
+                { q: 'A pencil weighs about...', correct: '5 grams', wrongs: ['5 kilograms', '50 grams', '500 grams'] }
+            ];
+            const qd = questions[this._rand(0, questions.length - 1)];
+            const answers = this._shuffle([qd.correct, ...qd.wrongs]);
+            return {
+                question: qd.q,
+                questionSpeak: qd.q,
+                answers,
+                correctIndex: answers.indexOf(qd.correct),
+                topic: 'measurement',
+                subtype: 'mass',
+                explanation: `The answer is ${qd.correct}!`,
+                explanationSpeak: `It weighs about ${qd.correct}!`
+            };
+        } else if (templateType === 2) {
+            // Add/subtract measurements
+            const a = this._rand(100, 500);
+            const b = this._rand(100, 500);
+            const isAdd = Math.random() < 0.5;
+            const unit = ['grams', 'mL'][this._rand(0, 1)];
+            const correct = isAdd ? a + b : Math.max(a, b) - Math.min(a, b);
+            const big = Math.max(a, b);
+            const small = Math.min(a, b);
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(10, correct - 100), correct + 100);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: isAdd ? `${a} ${unit} + ${b} ${unit} = ?` : `${big} ${unit} - ${small} ${unit} = ?`,
+                questionSpeak: isAdd ? `What is ${a} ${unit} plus ${b} ${unit}?` : `What is ${big} ${unit} minus ${small} ${unit}?`,
+                answers: answers.map(v => `${v} ${unit}`),
+                correctIndex: answers.indexOf(correct),
+                topic: 'measurement',
+                subtype: 'calc-measurement',
+                explanation: `${isAdd ? `${a} + ${b}` : `${big} - ${small}`} = ${correct} ${unit}!`,
+                explanationSpeak: `The answer is ${correct} ${unit}!`
+            };
+        } else {
+            // Unit conversion concepts
+            const questions = [
+                { q: 'How many grams in\n1 kilogram?', correct: '1,000', wrongs: ['100', '10', '10,000'] },
+                { q: 'How many mL in\n1 liter?', correct: '1,000', wrongs: ['100', '10', '10,000'] },
+                { q: '2 kilograms = ? grams', correct: '2,000', wrongs: ['200', '20', '20,000'] },
+                { q: '3 liters = ? mL', correct: '3,000', wrongs: ['300', '30', '30,000'] }
+            ];
+            const qd = questions[this._rand(0, questions.length - 1)];
+            const answers = this._shuffle([qd.correct, ...qd.wrongs]);
+            return {
+                question: qd.q,
+                questionSpeak: qd.q.replace(/\n/g, ' '),
+                answers,
+                correctIndex: answers.indexOf(qd.correct),
+                topic: 'measurement',
+                subtype: 'unit-convert',
+                explanation: `The answer is ${qd.correct}!`,
+                explanationSpeak: `The answer is ${qd.correct}!`
+            };
+        }
+    },
+
+    // ---- 3RD GRADE BIG NUMBERS — rounding, place value to thousands ----
+    _threeDigit3rd(level) {
+        const templateType = this._rand(0, 3);
+
+        if (templateType === 0) {
+            // Round to nearest 10
+            const n = this._rand(11, 99);
+            const correct = Math.round(n / 10) * 10;
+            const wrongs = [correct - 10, correct + 10, correct + 5].filter(w => w >= 0 && w !== correct);
+            while (wrongs.length < 3) wrongs.push(correct + (wrongs.length + 2) * 10);
+            const answers = this._shuffle([correct, ...wrongs.slice(0, 3)]);
+            return {
+                question: `Round ${n} to the\nnearest 10:`,
+                questionSpeak: `Round ${n} to the nearest ten.`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'three-digit',
+                subtype: 'round-10',
+                explanation: `${n} rounds to ${correct}! Look at the ones digit: ${n % 10 >= 5 ? 'round up' : 'round down'}!`,
+                explanationSpeak: `${n} rounds to ${correct}!`
+            };
+        } else if (templateType === 1) {
+            // Round to nearest 100
+            const n = this._rand(101, 999);
+            const correct = Math.round(n / 100) * 100;
+            const wrongs = [correct - 100, correct + 100, correct - 50].filter(w => w >= 0 && w !== correct);
+            while (wrongs.length < 3) wrongs.push(correct + (wrongs.length + 2) * 100);
+            const answers = this._shuffle([correct, ...wrongs.slice(0, 3)]);
+            const tensDigit = Math.floor((n % 100) / 10);
+            return {
+                question: `Round ${n} to the\nnearest 100:`,
+                questionSpeak: `Round ${n} to the nearest hundred.`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'three-digit',
+                subtype: 'round-100',
+                explanation: `${n} rounds to ${correct}! Look at the tens digit (${tensDigit}): ${tensDigit >= 5 ? 'round up' : 'round down'}!`,
+                explanationSpeak: `${n} rounds to ${correct}!`
+            };
+        } else if (templateType === 2) {
+            // Place value to thousands
+            const th = this._rand(1, 9);
+            const h = this._rand(0, 9);
+            const t = this._rand(0, 9);
+            const o = this._rand(0, 9);
+            const n = th * 1000 + h * 100 + t * 10 + o;
+            const places = [
+                { name: 'thousands', digit: th },
+                { name: 'hundreds', digit: h },
+                { name: 'tens', digit: t },
+                { name: 'ones', digit: o }
+            ];
+            const place = places[this._rand(0, 3)];
+            const correct = place.digit;
+            const wrongs = this._makeWrongAnswers(correct, 3, 0, 9);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `In ${n.toLocaleString()}, what digit\nis in the ${place.name} place?`,
+                questionSpeak: `In the number ${n}, what digit is in the ${place.name} place?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'three-digit',
+                subtype: 'place-value-4',
+                explanation: `The ${place.name} digit in ${n.toLocaleString()} is ${correct}!`,
+                explanationSpeak: `The ${place.name} digit is ${correct}!`
+            };
+        } else {
+            // Compare 4-digit numbers
+            let a = this._rand(1000, 9999);
+            let b = this._rand(1000, 9999);
+            if (Math.random() < 0.1) b = a;
+            const correctSymbol = a > b ? '>' : a < b ? '<' : '=';
+            const answers = this._shuffle(['>', '<', '=']);
+            return {
+                question: `${a.toLocaleString()} ___ ${b.toLocaleString()}\nWhich sign?`,
+                questionSpeak: `Compare ${a} and ${b}. Which sign goes in the blank?`,
+                answers,
+                correctIndex: answers.indexOf(correctSymbol),
+                topic: 'three-digit',
+                subtype: 'compare-4digit',
+                explanation: `${a.toLocaleString()} ${correctSymbol} ${b.toLocaleString()}!`,
+                explanationSpeak: `${a} is ${a > b ? 'greater than' : a < b ? 'less than' : 'equal to'} ${b}!`
+            };
+        }
+    },
+
+    // ---- 3RD GRADE WORD PROBLEMS — multi-step, multiplication/division ----
+    _wordProblems3rd(name, level) {
+        const templateType = this._rand(0, 4);
+
+        if (templateType === 0) {
+            // Two-step with multiplication and addition
+            const obj = ['stickers', 'cards', 'books', 'apples'][this._rand(0, 3)];
+            const packs = this._rand(3, 7);
+            const per = this._rand(4, 8);
+            const extra = this._rand(3, 15);
+            const correct = packs * per + extra;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(10, correct - 15), correct + 15);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `${name} has ${packs} packs of ${obj}\nwith ${per} each, plus ${extra} loose.\nHow many total?`,
+                questionSpeak: `${name} has ${packs} packs of ${obj} with ${per} each, plus ${extra} loose ones. How many total?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'word-problems',
+                subtype: 'multi-step-mult',
+                explanation: `${packs} x ${per} = ${packs * per}, plus ${extra} = ${correct}!`,
+                explanationSpeak: `${packs} times ${per} is ${packs * per}, plus ${extra} equals ${correct}!`
+            };
+        } else if (templateType === 1) {
+            // Division word problem
+            const total = this._rand(3, 9) * this._rand(3, 9);
+            const groups = [3, 4, 5, 6, 7, 8, 9].filter(g => total % g === 0);
+            if (groups.length === 0) return this._wordProblems3rd(name, level);
+            const group = groups[this._rand(0, groups.length - 1)];
+            const correct = total / group;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(1, correct - 4), correct + 4);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `${name} has ${total} photos to put\nin ${group} albums equally.\nHow many per album?`,
+                questionSpeak: `${name} has ${total} photos to put in ${group} albums equally. How many per album?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'word-problems',
+                subtype: 'division-wp',
+                explanation: `${total} / ${group} = ${correct} photos per album!`,
+                explanationSpeak: `${correct} photos per album!`
+            };
+        } else if (templateType === 2) {
+            // Two-step with subtraction then division
+            const total = this._rand(30, 80);
+            const used = this._rand(5, 15);
+            const remaining = total - used;
+            const groups = [2, 3, 4, 5].filter(g => remaining % g === 0);
+            if (groups.length === 0) return this._wordProblems3rd(name, level);
+            const group = groups[this._rand(0, groups.length - 1)];
+            const correct = remaining / group;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(1, correct - 5), correct + 5);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `${name} baked ${total} cookies.\nAte ${used}, then split the rest\namong ${group} friends. How many each?`,
+                questionSpeak: `${name} baked ${total} cookies. Ate ${used}, then split the rest among ${group} friends. How many does each friend get?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'word-problems',
+                subtype: 'two-step-div',
+                explanation: `${total} - ${used} = ${remaining}, then ${remaining} / ${group} = ${correct} each!`,
+                explanationSpeak: `${total} minus ${used} is ${remaining}, divided by ${group} is ${correct}!`
+            };
+        } else if (templateType === 3) {
+            // Area word problem
+            const l = this._rand(3, 12);
+            const w = this._rand(3, 10);
+            const correct = l * w;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(5, correct - 15), correct + 15);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `${name}'s garden is ${l} ft long\nand ${w} ft wide.\nWhat is the area?`,
+                questionSpeak: `${name}'s garden is ${l} feet long and ${w} feet wide. What is the area?`,
+                answers: answers.map(v => `${v} sq ft`),
+                correctIndex: answers.indexOf(correct),
+                topic: 'word-problems',
+                subtype: 'area-wp',
+                explanation: `Area = ${l} x ${w} = ${correct} square feet!`,
+                explanationSpeak: `${l} times ${w} equals ${correct} square feet!`
+            };
+        } else {
+            // Comparison with multiplication
+            const names2 = ['Jake', 'Mia', 'Ben', 'Sara', 'Lily'];
+            const n2 = names2.filter(n => n !== name)[this._rand(0, 3)];
+            const aCount = this._rand(3, 8);
+            const multiplier = this._rand(2, 5);
+            const bCount = aCount * multiplier;
+            const correct = bCount;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(3, correct - 10), correct + 10);
+            const answers = this._shuffle([correct, ...wrongs]);
+            const obj = ['stickers', 'marbles', 'cards', 'coins'][this._rand(0, 3)];
+            return {
+                question: `${name} has ${aCount} ${obj}.\n${n2} has ${multiplier} times as many.\nHow many does ${n2} have?`,
+                questionSpeak: `${name} has ${aCount} ${obj}. ${n2} has ${multiplier} times as many. How many does ${n2} have?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'word-problems',
+                subtype: 'times-as-many',
+                explanation: `${aCount} x ${multiplier} = ${correct}! ${n2} has ${correct} ${obj}!`,
+                explanationSpeak: `${aCount} times ${multiplier} equals ${correct}!`
+            };
+        }
+    },
+
+    // ---- 3RD GRADE SKIP COUNTING (for counting topic at level 8+) ----
+    _skipCounting3rd(level) {
+        const templateType = this._rand(0, 2);
+
+        if (templateType === 0) {
+            // Count by 3s, 4s, 6s, 7s, 8s, 9s
+            const step = [3, 4, 6, 7, 8, 9][this._rand(0, 5)];
+            const startMult = this._rand(1, 4);
+            const start = step * startMult;
+            const count = 4;
+            const sequence = [];
+            for (let i = 0; i < count; i++) sequence.push(start + i * step);
+            const correct = start + count * step;
+            const display = sequence.join(', ') + ', ___';
+            const wrongs = this._makeWrongAnswers(correct, 3, correct - step * 2, correct + step * 2);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `Count by ${step}s:\n${display}`,
+                questionSpeak: `Count by ${step}s. What comes next? ${sequence.join(', ')}`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'counting',
+                subtype: 'skip-count-3rd',
+                explanation: `Counting by ${step}s: ${sequence.join(', ')}, ${correct}!`,
+                explanationSpeak: `${correct} comes next!`
+            };
+        } else if (templateType === 1) {
+            // Count backwards by multiples
+            const step = [5, 10, 25, 50][this._rand(0, 3)];
+            const start = step * this._rand(6, 12);
+            const count = 4;
+            const sequence = [];
+            for (let i = 0; i < count; i++) sequence.push(start - i * step);
+            const correct = start - count * step;
+            if (correct < 0) return this._skipCounting3rd(level);
+            const display = sequence.join(', ') + ', ___';
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(0, correct - step * 2), correct + step * 2);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `Count backwards by ${step}s:\n${display}`,
+                questionSpeak: `Count backwards by ${step}s. What comes next?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'counting',
+                subtype: 'count-back-3rd',
+                explanation: `Subtract ${step} each time: ${correct}!`,
+                explanationSpeak: `${correct} comes next!`
+            };
+        } else {
+            // Number patterns with multiplication
+            const base = this._rand(2, 9);
+            const sequence = [base * 1, base * 2, base * 3, base * 4];
+            const correct = base * 5;
+            const display = sequence.join(', ') + ', ___';
+            const wrongs = this._makeWrongAnswers(correct, 3, correct - base * 2, correct + base * 2);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `What comes next?\n${display}`,
+                questionSpeak: `What comes next? ${sequence.join(', ')}`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'counting',
+                subtype: 'mult-pattern',
+                explanation: `These are multiples of ${base}: ${sequence.join(', ')}, ${correct}!`,
+                explanationSpeak: `These are the ${base} times table! ${correct} comes next!`
+            };
+        }
+    },
+
+    // ---- AREA & PERIMETER (new 3rd grade topic) ----
+    _areaPerimeter(level) {
+        const templateType = this._rand(0, 4);
+
+        if (templateType === 0) {
+            // Area of rectangle
+            const l = this._rand(2, level >= 9 ? 12 : 9);
+            const w = this._rand(2, level >= 9 ? 10 : 8);
+            const correct = l * w;
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(2, correct - 10), correct + 10);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `Rectangle: ${l} units long,\n${w} units wide.\nArea = ?`,
+                questionSpeak: `A rectangle is ${l} units long and ${w} units wide. What is the area?`,
+                answers: answers.map(v => `${v} sq units`),
+                correctIndex: answers.indexOf(correct),
+                topic: 'area-perimeter',
+                subtype: 'area-rect',
+                explanation: `Area = length x width = ${l} x ${w} = ${correct} square units!`,
+                explanationSpeak: `${l} times ${w} equals ${correct} square units!`
+            };
+        } else if (templateType === 1) {
+            // Perimeter of rectangle
+            const l = this._rand(2, level >= 9 ? 15 : 10);
+            const w = this._rand(2, level >= 9 ? 12 : 8);
+            const correct = 2 * (l + w);
+            const wrongs = [l * w, l + w, 2 * l + w].filter(v => v !== correct);
+            while (wrongs.length < 3) wrongs.push(correct + this._rand(1, 5));
+            const answers = this._shuffle([correct, ...wrongs.slice(0, 3)]);
+            return {
+                question: `Rectangle: ${l} units long,\n${w} units wide.\nPerimeter = ?`,
+                questionSpeak: `A rectangle is ${l} units long and ${w} units wide. What is the perimeter?`,
+                answers: answers.map(v => `${v} units`),
+                correctIndex: answers.indexOf(correct),
+                topic: 'area-perimeter',
+                subtype: 'perimeter-rect',
+                explanation: `Perimeter = 2 x (${l} + ${w}) = 2 x ${l + w} = ${correct} units!`,
+                explanationSpeak: `Add all four sides: ${l} plus ${w} plus ${l} plus ${w} equals ${correct}!`
+            };
+        } else if (templateType === 2) {
+            // Area of square
+            const side = this._rand(2, 10);
+            const correct = side * side;
+            const wrongs = [side * 4, side * 2, side + side].filter(v => v !== correct);
+            while (wrongs.length < 3) wrongs.push(correct + this._rand(1, 5));
+            const answers = this._shuffle([correct, ...wrongs.slice(0, 3)]);
+            return {
+                question: `Square: each side = ${side} units.\nArea = ?`,
+                questionSpeak: `A square has sides of ${side} units. What is the area?`,
+                answers: answers.map(v => `${v} sq units`),
+                correctIndex: answers.indexOf(correct),
+                topic: 'area-perimeter',
+                subtype: 'area-square',
+                explanation: `Area of a square = side x side = ${side} x ${side} = ${correct} sq units!`,
+                explanationSpeak: `${side} times ${side} equals ${correct} square units!`
+            };
+        } else if (templateType === 3) {
+            // Perimeter of square
+            const side = this._rand(2, 12);
+            const correct = side * 4;
+            const wrongs = [side * side, side * 2, side * 3].filter(v => v !== correct);
+            while (wrongs.length < 3) wrongs.push(correct + this._rand(1, 5));
+            const answers = this._shuffle([correct, ...wrongs.slice(0, 3)]);
+            return {
+                question: `Square: each side = ${side} units.\nPerimeter = ?`,
+                questionSpeak: `A square has sides of ${side} units. What is the perimeter?`,
+                answers: answers.map(v => `${v} units`),
+                correctIndex: answers.indexOf(correct),
+                topic: 'area-perimeter',
+                subtype: 'perimeter-square',
+                explanation: `Perimeter = 4 x ${side} = ${correct} units! A square has 4 equal sides!`,
+                explanationSpeak: `4 times ${side} equals ${correct} units!`
+            };
+        } else {
+            // "Is this area or perimeter?"
+            const scenarios = [
+                { desc: 'carpet to cover a floor', correct: 'Area', explain: 'Covering a surface is area!' },
+                { desc: 'fence around a yard', correct: 'Perimeter', explain: 'Going around the outside is perimeter!' },
+                { desc: 'paint for a wall', correct: 'Area', explain: 'Painting a surface is area!' },
+                { desc: 'border for a picture', correct: 'Perimeter', explain: 'A border goes around the edge, that is perimeter!' },
+                { desc: 'tiles for a bathroom floor', correct: 'Area', explain: 'Covering a floor is area!' },
+                { desc: 'ribbon around a gift box lid', correct: 'Perimeter', explain: 'Ribbon goes around the edge, that is perimeter!' }
+            ];
+            const s = scenarios[this._rand(0, scenarios.length - 1)];
+            const answers = this._shuffle(['Area', 'Perimeter']);
+            return {
+                question: `To find how much ${s.desc},\ndo you need AREA\nor PERIMETER?`,
+                questionSpeak: `To find how much ${s.desc}, do you need area or perimeter?`,
+                answers,
+                correctIndex: answers.indexOf(s.correct),
+                topic: 'area-perimeter',
+                subtype: 'area-vs-perimeter',
+                explanation: s.explain,
+                explanationSpeak: s.explain
+            };
+        }
+    },
+
+    // ---- ROUNDING (new 3rd grade topic) ----
+    _rounding(level) {
+        const templateType = this._rand(0, 3);
+
+        if (templateType === 0) {
+            // Round to nearest 10
+            const n = this._rand(11, level >= 9 ? 999 : 99);
+            const correct = Math.round(n / 10) * 10;
+            const wrongs = [correct - 10, correct + 10, n].filter(w => w >= 0 && w !== correct);
+            while (wrongs.length < 3) wrongs.push(correct + (wrongs.length + 2) * 10);
+            const answers = this._shuffle([correct, ...wrongs.slice(0, 3)]);
+            return {
+                question: `Round ${n} to the\nnearest 10:`,
+                questionSpeak: `Round ${n} to the nearest ten.`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'rounding',
+                subtype: 'round-10',
+                explanation: `${n} rounds to ${correct}! The ones digit ${n % 10} is ${n % 10 >= 5 ? '5 or more, so round up' : 'less than 5, so round down'}!`,
+                explanationSpeak: `${n} rounds to ${correct}!`
+            };
+        } else if (templateType === 1) {
+            // Round to nearest 100
+            const n = this._rand(101, level >= 9 ? 9999 : 999);
+            const correct = Math.round(n / 100) * 100;
+            const wrongs = [correct - 100, correct + 100, n].filter(w => w >= 0 && w !== correct);
+            while (wrongs.length < 3) wrongs.push(correct + (wrongs.length + 2) * 100);
+            const answers = this._shuffle([correct, ...wrongs.slice(0, 3)]);
+            const tensDigit = Math.floor((n % 100) / 10);
+            return {
+                question: `Round ${n} to the\nnearest 100:`,
+                questionSpeak: `Round ${n} to the nearest hundred.`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'rounding',
+                subtype: 'round-100',
+                explanation: `${n} rounds to ${correct}! The tens digit ${tensDigit} is ${tensDigit >= 5 ? '5 or more, so round up' : 'less than 5, so round down'}!`,
+                explanationSpeak: `${n} rounds to ${correct}!`
+            };
+        } else if (templateType === 2) {
+            // Estimation with rounding
+            const a = this._rand(20, 80);
+            const b = this._rand(20, 80);
+            const aRound = Math.round(a / 10) * 10;
+            const bRound = Math.round(b / 10) * 10;
+            const isAdd = Math.random() < 0.5;
+            const correct = isAdd ? aRound + bRound : Math.max(aRound, bRound) - Math.min(aRound, bRound);
+            const big = Math.max(a, b);
+            const small = Math.min(a, b);
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(0, correct - 30), correct + 30);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: isAdd ? `Estimate: ${a} + ${b}\n(Round to nearest 10 first)` : `Estimate: ${big} - ${small}\n(Round to nearest 10 first)`,
+                questionSpeak: isAdd ? `Estimate ${a} plus ${b} by rounding to the nearest ten first.` : `Estimate ${big} minus ${small} by rounding to the nearest ten first.`,
+                answers: answers.map(v => `about ${v}`),
+                correctIndex: answers.indexOf(correct),
+                topic: 'rounding',
+                subtype: 'estimate',
+                explanation: isAdd ? `${a} rounds to ${aRound}, ${b} rounds to ${bRound}. ${aRound} + ${bRound} = about ${correct}!` : `${big} rounds to ${Math.round(big / 10) * 10}, ${small} rounds to ${Math.round(small / 10) * 10}. About ${correct}!`,
+                explanationSpeak: `The estimate is about ${correct}!`
+            };
+        } else {
+            // "Between which two tens/hundreds?"
+            const useHundreds = level >= 9 && Math.random() < 0.5;
+            if (useHundreds) {
+                const n = this._rand(101, 899);
+                const lower = Math.floor(n / 100) * 100;
+                const upper = lower + 100;
+                const correct = `${lower} and ${upper}`;
+                const wrongs = [
+                    `${lower - 100} and ${lower}`,
+                    `${upper} and ${upper + 100}`,
+                    `${lower + 50} and ${upper + 50}`
+                ];
+                const answers = this._shuffle([correct, ...wrongs]);
+                return {
+                    question: `${n} is between which\ntwo hundreds?`,
+                    questionSpeak: `${n} is between which two hundreds?`,
+                    answers,
+                    correctIndex: answers.indexOf(correct),
+                    topic: 'rounding',
+                    subtype: 'between-hundreds',
+                    explanation: `${n} is between ${lower} and ${upper}!`,
+                    explanationSpeak: `${n} is between ${lower} and ${upper}!`
+                };
+            } else {
+                const n = this._rand(11, 89);
+                const lower = Math.floor(n / 10) * 10;
+                const upper = lower + 10;
+                const correct = `${lower} and ${upper}`;
+                const wrongs = [
+                    `${lower - 10} and ${lower}`,
+                    `${upper} and ${upper + 10}`,
+                    `${lower + 5} and ${upper + 5}`
+                ];
+                const answers = this._shuffle([correct, ...wrongs]);
+                return {
+                    question: `${n} is between which\ntwo tens?`,
+                    questionSpeak: `${n} is between which two tens?`,
+                    answers,
+                    correctIndex: answers.indexOf(correct),
+                    topic: 'rounding',
+                    subtype: 'between-tens',
+                    explanation: `${n} is between ${lower} and ${upper}!`,
+                    explanationSpeak: `${n} is between ${lower} and ${upper}!`
+                };
+            }
+        }
+    },
+
+    // ---- FUNCTION TABLES / ARITHMETIC PATTERNS (new 3rd grade topic) ----
+    _functionTables(level) {
+        const templateType = this._rand(0, 3);
+
+        if (templateType === 0) {
+            // "What's the rule?" — input/output table
+            const operations = [
+                { rule: 'Add 3', fn: n => n + 3, ruleSpeak: 'add 3' },
+                { rule: 'Add 5', fn: n => n + 5, ruleSpeak: 'add 5' },
+                { rule: 'Add 10', fn: n => n + 10, ruleSpeak: 'add 10' },
+                { rule: 'Subtract 2', fn: n => n - 2, ruleSpeak: 'subtract 2' },
+                { rule: 'Subtract 5', fn: n => n - 5, ruleSpeak: 'subtract 5' },
+                { rule: 'Multiply by 2', fn: n => n * 2, ruleSpeak: 'multiply by 2' },
+                { rule: 'Multiply by 3', fn: n => n * 3, ruleSpeak: 'multiply by 3' },
+                { rule: 'Multiply by 4', fn: n => n * 4, ruleSpeak: 'multiply by 4' }
+            ];
+            const op = operations[this._rand(0, level >= 9 ? operations.length - 1 : 5)];
+            const inputs = [this._rand(1, 5), this._rand(6, 10), this._rand(11, 15)];
+            const outputs = inputs.map(op.fn);
+            const correct = op.rule;
+            const wrongOps = operations.filter(o => o.rule !== correct).map(o => o.rule);
+            const wrongs = this._shuffle(wrongOps).slice(0, 3);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `In → Out\n${inputs[0]} → ${outputs[0]}\n${inputs[1]} → ${outputs[1]}\n${inputs[2]} → ${outputs[2]}\nRule = ?`,
+                questionSpeak: `${inputs[0]} becomes ${outputs[0]}, ${inputs[1]} becomes ${outputs[1]}, ${inputs[2]} becomes ${outputs[2]}. What's the rule?`,
+                answers,
+                correctIndex: answers.indexOf(correct),
+                topic: 'function-tables',
+                subtype: 'find-rule',
+                explanation: `The rule is "${correct}"! Each input gets ${op.ruleSpeak}!`,
+                explanationSpeak: `The rule is ${op.ruleSpeak}!`
+            };
+        } else if (templateType === 1) {
+            // Find the missing output
+            const mult = this._rand(2, level >= 9 ? 9 : 6);
+            const add = this._rand(0, level >= 9 ? 5 : 3);
+            const inputs = [1, 2, 3, 4, 5];
+            const outputs = inputs.map(n => n * mult + add);
+            const missingIdx = this._rand(2, 4);
+            const correct = outputs[missingIdx];
+            const wrongs = this._makeWrongAnswers(correct, 3, Math.max(1, correct - 10), correct + 10);
+            const answers = this._shuffle([correct, ...wrongs]);
+            const table = inputs.map((inp, i) => `${inp} → ${i === missingIdx ? '?' : outputs[i]}`).join('\n');
+            return {
+                question: `In → Out\n${table}\nWhat is ?`,
+                questionSpeak: `Find the missing number in the pattern. ${inputs.filter((_, i) => i !== missingIdx).map((inp, i) => `${inp} goes to ${outputs[inputs.indexOf(inp)]}`).join(', ')}. What does ${inputs[missingIdx]} go to?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'function-tables',
+                subtype: 'missing-output',
+                explanation: `The pattern is x${mult}${add > 0 ? ` + ${add}` : ''}. ${inputs[missingIdx]} x ${mult}${add > 0 ? ` + ${add}` : ''} = ${correct}!`,
+                explanationSpeak: `The answer is ${correct}!`
+            };
+        } else if (templateType === 2) {
+            // Arithmetic pattern — what comes next?
+            const step = this._rand(3, level >= 9 ? 12 : 8);
+            const start = this._rand(2, 10);
+            const seq = [start, start + step, start + step * 2, start + step * 3];
+            const correct = start + step * 4;
+            const wrongs = this._makeWrongAnswers(correct, 3, correct - step * 2, correct + step * 2);
+            const answers = this._shuffle([correct, ...wrongs]);
+            return {
+                question: `What comes next?\n${seq.join(', ')}, ___`,
+                questionSpeak: `What comes next in this pattern? ${seq.join(', ')}`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'function-tables',
+                subtype: 'pattern-next',
+                explanation: `Add ${step} each time: ${seq.join(', ')}, ${correct}!`,
+                explanationSpeak: `Add ${step} each time! ${correct} comes next!`
+            };
+        } else {
+            // Find the missing input
+            const mult = this._rand(2, 7);
+            const inputs = [2, 4, 6, 8, 10];
+            const outputs = inputs.map(n => n * mult);
+            const missingIdx = this._rand(1, 3);
+            const correct = inputs[missingIdx];
+            const wrongs = this._makeWrongAnswers(correct, 3, 1, 12);
+            const answers = this._shuffle([correct, ...wrongs]);
+            const table = inputs.map((inp, i) => `${i === missingIdx ? '?' : inp} → ${outputs[i]}`).join('\n');
+            return {
+                question: `In → Out\n${table}\nWhat is the missing input?`,
+                questionSpeak: `Find the missing input number in the pattern.`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(correct),
+                topic: 'function-tables',
+                subtype: 'missing-input',
+                explanation: `The rule is x${mult}. ? x ${mult} = ${outputs[missingIdx]}, so ? = ${correct}!`,
+                explanationSpeak: `The missing input is ${correct}!`
+            };
         }
     }
 };

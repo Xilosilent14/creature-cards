@@ -1,4 +1,4 @@
-// ===== READING QUESTION DATA V37 =====
+// ===== READING QUESTION DATA V41 =====
 const ReadingData = {
     topics: [
         { id: 'letters', name: 'Letters', icon: '🔤' },
@@ -22,7 +22,14 @@ const ReadingData = {
         { id: 'word-families', name: 'Word Families', icon: '👨‍👩‍👧' },
         { id: 'sequencing', name: 'Story Order', icon: '📋' },
         { id: 'homophones', name: 'Homophones', icon: '👂' },
-        { id: 'capitalization', name: 'Capitals', icon: '🅰️' }
+        { id: 'capitalization', name: 'Capitals', icon: '🅰️' },
+        // V41: 3rd grade topics
+        { id: 'multi-syllable', name: 'Syllable Decoding', icon: '🧩' },
+        { id: 'context-clues', name: 'Context Clues', icon: '🔍' },
+        { id: 'main-idea-detail', name: 'Main Idea & Details', icon: '🎯' },
+        { id: 'cause-effect', name: 'Cause & Effect', icon: '⚡' },
+        { id: 'compare-contrast', name: 'Compare & Contrast', icon: '⚖️' },
+        { id: 'text-features', name: 'Text Features', icon: '📑' }
     ],
 
     generate(topic, level) {
@@ -48,7 +55,14 @@ const ReadingData = {
             'word-families': this._wordFamilies,
             sequencing: this._sequencing,
             homophones: this._homophones,
-            capitalization: this._capitalization
+            capitalization: this._capitalization,
+            // V41: 3rd grade topics
+            'multi-syllable': this._multiSyllable,
+            'context-clues': this._contextClues,
+            'main-idea-detail': this._mainIdeaDetail,
+            'cause-effect': this._causeEffect,
+            'compare-contrast': this._compareContrast,
+            'text-features': this._textFeatures
         };
         const gen = generators[topic];
         if (!gen) return this._letters(level);
@@ -1278,6 +1292,8 @@ const ReadingData = {
     },
 
     _vocabulary(level) {
+        // V41: 3rd grade dispatch
+        if (level >= 8) return this._vocabulary3rd(level);
         // V20: 2nd grade dispatch
         if (level >= 6) return this._vocabulary2nd(level);
 
@@ -2424,6 +2440,9 @@ const ReadingData = {
 
     // ---- PREFIX & SUFFIX ----
     _prefixSuffix(level) {
+        // V41: 3rd grade dispatch
+        if (level >= 8) return this._prefixSuffix3rd(level);
+
         // V37: "Which word has a prefix?" (25%)
         if (Math.random() < 0.25) {
             const prefixWords = ['unhappy', 'unkind', 'redo', 'replay', 'rewrite', 'unfair', 'unlock', 'untie', 'rebuild', 'restart', 'refill', 'unsafe', 'preheat', 'preview', 'prepay', 'unsure'];
@@ -2554,6 +2573,9 @@ const ReadingData = {
 
     // ---- GRAMMAR: nouns, verbs, adjectives ----
     _grammar(level) {
+        // V41: 3rd grade dispatch
+        if (level >= 8) return this._grammar3rd(level);
+
         const roll = Math.random();
 
         // V37: Past or present tense? (20%)
@@ -2820,6 +2842,9 @@ const ReadingData = {
 
     // ---- READING COMPREHENSION ----
     _comprehension(level) {
+        // V41: 3rd grade dispatch
+        if (level >= 8) return this._comprehension3rd(level);
+
         const passages = [
             {
                 text: 'Sam had a red ball. He threw it to his dog. The dog caught it and ran away!',
@@ -3729,6 +3754,987 @@ const ReadingData = {
             subtype: level < 5 ? 'easy-capital' : 'hard-capital',
             explanation: `"${item.answer}" needs a capital letter because it's a proper name!`,
             explanationSpeak: `${item.answer} needs a capital letter because it is a name or special place!`
+        };
+    },
+
+    // ===== V41: 3RD GRADE GENERATORS =====
+
+    // ---- ADVANCED PREFIX/SUFFIX (3rd grade) ----
+    _prefixSuffix3rd(level) {
+        const roll = Math.random();
+
+        if (roll < 0.25) {
+            // dis- prefix
+            const disWords = [
+                { base: 'agree', result: 'disagree', meaning: 'to not agree' },
+                { base: 'appear', result: 'disappear', meaning: 'to stop being seen' },
+                { base: 'like', result: 'dislike', meaning: 'to not like' },
+                { base: 'connect', result: 'disconnect', meaning: 'to break a connection' },
+                { base: 'obey', result: 'disobey', meaning: 'to not obey' },
+                { base: 'honest', result: 'dishonest', meaning: 'not honest' },
+                { base: 'comfort', result: 'discomfort', meaning: 'lack of comfort' },
+                { base: 'trust', result: 'distrust', meaning: 'lack of trust' }
+            ];
+            const item = disWords[this._rand(0, disWords.length - 1)];
+            const answers = this._shuffle([item.meaning, `very ${item.base}`, `${item.base} again`, `full of ${item.base}`]);
+            return {
+                question: `What does "${item.result}" mean?\n(dis- means "not" or "opposite of")`,
+                questionSpeak: `What does ${item.result} mean? The prefix dis means not or opposite of.`,
+                answers,
+                correctIndex: answers.indexOf(item.meaning),
+                topic: 'prefix-suffix',
+                subtype: 'prefix-dis',
+                explanation: `"${item.result}" = dis- + ${item.base} = ${item.meaning}!`,
+                explanationSpeak: `${item.result} means ${item.meaning}! The prefix dis means not or opposite of!`
+            };
+        }
+
+        if (roll < 0.5) {
+            // -tion / -sion suffix
+            const tionWords = [
+                { base: 'act', result: 'action', meaning: 'the act of doing' },
+                { base: 'educate', result: 'education', meaning: 'the process of learning' },
+                { base: 'celebrate', result: 'celebration', meaning: 'a party or event' },
+                { base: 'invent', result: 'invention', meaning: 'something new that was made' },
+                { base: 'collect', result: 'collection', meaning: 'a group of things gathered' },
+                { base: 'protect', result: 'protection', meaning: 'keeping something safe' },
+                { base: 'direct', result: 'direction', meaning: 'the way to go' },
+                { base: 'decide', result: 'decision', meaning: 'a choice that was made' },
+                { base: 'discuss', result: 'discussion', meaning: 'a talk between people' },
+                { base: 'explode', result: 'explosion', meaning: 'a sudden burst' }
+            ];
+            const item = tionWords[this._rand(0, tionWords.length - 1)];
+            const suffix = item.result.endsWith('sion') ? '-sion' : '-tion';
+            const answers = this._shuffle([item.meaning, `to ${item.base} again`, `without ${item.base}`, `very ${item.base}`]);
+            return {
+                question: `What does "${item.result}" mean?\n(${suffix} turns a verb into a noun)`,
+                questionSpeak: `What does ${item.result} mean? The suffix ${suffix.replace('-','')} turns a verb into a noun.`,
+                answers,
+                correctIndex: answers.indexOf(item.meaning),
+                topic: 'prefix-suffix',
+                subtype: 'suffix-tion',
+                explanation: `"${item.result}" = ${item.base} + ${suffix} = ${item.meaning}!`,
+                explanationSpeak: `${item.result} means ${item.meaning}! The suffix ${suffix.replace('-','')} changes a verb into a noun!`
+            };
+        }
+
+        if (roll < 0.75) {
+            // -ment suffix
+            const mentWords = [
+                { base: 'enjoy', result: 'enjoyment', meaning: 'the feeling of joy' },
+                { base: 'move', result: 'movement', meaning: 'the act of moving' },
+                { base: 'excite', result: 'excitement', meaning: 'the feeling of being excited' },
+                { base: 'agree', result: 'agreement', meaning: 'when people agree' },
+                { base: 'achieve', result: 'achievement', meaning: 'something you accomplished' },
+                { base: 'amaze', result: 'amazement', meaning: 'the feeling of being amazed' },
+                { base: 'replace', result: 'replacement', meaning: 'something that takes the place of another' },
+                { base: 'improve', result: 'improvement', meaning: 'making something better' }
+            ];
+            const item = mentWords[this._rand(0, mentWords.length - 1)];
+            const answers = this._shuffle([item.meaning, `to ${item.base} again`, `not able to ${item.base}`, `one who ${item.base}s`]);
+            return {
+                question: `What does "${item.result}" mean?\n(-ment means "the act or result of")`,
+                questionSpeak: `What does ${item.result} mean? The suffix ment means the act or result of.`,
+                answers,
+                correctIndex: answers.indexOf(item.meaning),
+                topic: 'prefix-suffix',
+                subtype: 'suffix-ment',
+                explanation: `"${item.result}" = ${item.base} + -ment = ${item.meaning}!`,
+                explanationSpeak: `${item.result} means ${item.meaning}! The suffix ment shows the act or result of something!`
+            };
+        }
+
+        // "Break this word apart" — identify prefix + root + suffix
+        const breakApart = [
+            { word: 'unhappiness', parts: 'un + happy + ness', prefix: 'un-', root: 'happy', suffix: '-ness', wrongs: ['un + hap + piness', 'unha + ppi + ness', 'u + nhappy + ness'] },
+            { word: 'disagree', parts: 'dis + agree', prefix: 'dis-', root: 'agree', suffix: 'none', wrongs: ['di + sagree', 'disa + gree', 'dis + ag + ree'] },
+            { word: 'replacement', parts: 're + place + ment', prefix: 're-', root: 'place', suffix: '-ment', wrongs: ['rep + lace + ment', 're + plac + ement', 'repla + ce + ment'] },
+            { word: 'uncomfortable', parts: 'un + comfort + able', prefix: 'un-', root: 'comfort', suffix: '-able', wrongs: ['unc + om + fortable', 'un + com + fortable', 'uncom + fort + able'] },
+            { word: 'unkindness', parts: 'un + kind + ness', prefix: 'un-', root: 'kind', suffix: '-ness', wrongs: ['unk + ind + ness', 'un + ki + ndness', 'unki + nd + ness'] },
+            { word: 'prepayment', parts: 'pre + pay + ment', prefix: 'pre-', root: 'pay', suffix: '-ment', wrongs: ['prep + ay + ment', 'pre + paym + ent', 'prep + aym + ent'] },
+            { word: 'carelessness', parts: 'care + less + ness', prefix: 'none', root: 'care', suffix: '-less + -ness', wrongs: ['car + eless + ness', 'care + le + ssness', 'carel + ess + ness'] },
+            { word: 'rebuilding', parts: 're + build + ing', prefix: 're-', root: 'build', suffix: '-ing', wrongs: ['reb + uild + ing', 're + buil + ding', 'rebu + ild + ing'] }
+        ];
+        const item = breakApart[this._rand(0, breakApart.length - 1)];
+        const answers = this._shuffle([item.parts, ...item.wrongs]);
+        return {
+            question: `🏗️ Break this word into parts:\n"${item.word}"`,
+            questionSpeak: `Break the word ${item.word} into its parts.`,
+            answers,
+            correctIndex: answers.indexOf(item.parts),
+            topic: 'prefix-suffix',
+            subtype: 'break-apart',
+            explanation: `"${item.word}" breaks into ${item.parts}!${item.prefix !== 'none' ? ` The prefix is ${item.prefix}.` : ''}${item.suffix !== 'none' ? ` The suffix is ${item.suffix}.` : ''}`,
+            explanationSpeak: `${item.word} breaks into ${item.parts}!`
+        };
+    },
+
+    // ---- VOCABULARY 3RD GRADE ----
+    _vocabulary3rd(level) {
+        const roll = Math.random();
+
+        if (roll < 0.35) {
+            // Advanced context clues with longer sentences
+            const contextItems = [
+                { sentence: 'The abandoned house had broken windows and overgrown weeds. No one had lived there for years.', word: 'abandoned', correct: 'left empty, deserted', wrongs: ['newly built', 'painted bright colors', 'very expensive'] },
+                { sentence: 'The medicine helped alleviate her headache, and she felt much better.', word: 'alleviate', correct: 'reduce or lessen', wrongs: ['make worse', 'start quickly', 'completely stop'] },
+                { sentence: 'The camouflaged lizard blended perfectly with the brown leaves on the ground.', word: 'camouflaged', correct: 'hidden by blending in', wrongs: ['brightly colored', 'very large', 'moving quickly'] },
+                { sentence: 'After working outside all day, the farmers were famished and ate a huge dinner.', word: 'famished', correct: 'extremely hungry', wrongs: ['well rested', 'very cold', 'quite happy'] },
+                { sentence: 'The persistent rain lasted for five straight days without stopping.', word: 'persistent', correct: 'continuing without stopping', wrongs: ['light and gentle', 'coming and going', 'very cold'] },
+                { sentence: 'The dog was so lethargic in the heat that it just lay on the porch all day.', word: 'lethargic', correct: 'very tired and slow', wrongs: ['playful and active', 'loud and barking', 'hungry and thin'] },
+                { sentence: 'The magician performed an astonishing trick that amazed the whole audience.', word: 'astonishing', correct: 'very surprising', wrongs: ['boring and dull', 'short and quick', 'quiet and soft'] },
+                { sentence: 'The teacher asked the class to collaborate on the project by working together.', word: 'collaborate', correct: 'work together', wrongs: ['work alone', 'stop working', 'argue about'] },
+                { sentence: 'The frigid wind made everyone shiver and pull their coats tighter.', word: 'frigid', correct: 'extremely cold', wrongs: ['warm and gentle', 'very loud', 'slightly damp'] },
+                { sentence: 'She was reluctant to jump in the cold pool, hesitating at the edge.', word: 'reluctant', correct: 'not wanting to do something', wrongs: ['eager and excited', 'running quickly', 'happy and cheerful'] },
+                { sentence: 'The ancient ruins were thousands of years old and crumbling apart.', word: 'ancient', correct: 'very, very old', wrongs: ['brand new', 'very tall', 'brightly painted'] },
+                { sentence: 'His explanation was so vague that nobody understood what he meant.', word: 'vague', correct: 'unclear, not specific', wrongs: ['very detailed', 'loud and clear', 'short and sweet'] }
+            ];
+            const item = contextItems[this._rand(0, contextItems.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `🔍 "${item.sentence}"\n\nWhat does "${item.word}" mean?`,
+                questionSpeak: `${item.sentence} What does ${item.word} mean?`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'vocabulary',
+                subtype: 'context-clues-3rd',
+                explanation: `"${item.word}" means ${item.correct}! The clues in the sentence help us figure it out!`,
+                explanationSpeak: `${item.word} means ${item.correct}! Good readers use context clues to figure out new words!`
+            };
+        }
+
+        if (roll < 0.65) {
+            // Multiple-meaning words in sentence context
+            const multiContext = [
+                { sentence: 'The baseball player stepped up to the ___.', word: 'bat', correct: 'a stick for hitting balls', wrongs: ['a flying animal', 'to blink your eyes', 'a type of cave'] },
+                { sentence: 'The tree ___ fell off and floated down the river.', word: 'bark', correct: 'the outer covering of a tree', wrongs: ['the sound a dog makes', 'a small boat', 'a loud yell'] },
+                { sentence: 'Please ___ the door before you leave.', word: 'close', correct: 'to shut', wrongs: ['near or nearby', 'a type of clothing', 'the end of a show'] },
+                { sentence: 'The fish took the ___ and the line went tight!', word: 'bait', correct: 'food used to catch fish', wrongs: ['to wait for someone', 'a heavy weight', 'a fishing rod'] },
+                { sentence: 'We watched the rocket ___ off into space.', word: 'launch', correct: 'to send up or start', wrongs: ['a type of meal', 'a flat boat', 'to lean back'] },
+                { sentence: 'The ___ on the paper showed where each country was.', word: 'key', correct: 'a guide that explains symbols', wrongs: ['something that opens a lock', 'a musical note', 'an island'] },
+                { sentence: 'She will ___ the whole team at the competition.', word: 'lead', correct: 'to be in charge of', wrongs: ['a heavy gray metal', 'a dog leash', 'the first page'] },
+                { sentence: 'The desert ___ stretched for miles in every direction.', word: 'plain', correct: 'a flat area of land', wrongs: ['simple or basic', 'an airplane', 'clear to see'] },
+                { sentence: 'The teacher asked us to ___ our pencils.', word: 'point', correct: 'to sharpen the tip', wrongs: ['a dot or spot', 'a score in a game', 'to aim your finger'] },
+                { sentence: 'We need to ___ the problem before we can fix it.', word: 'address', correct: 'to deal with or talk about', wrongs: ['where someone lives', 'a label on a letter', 'a type of speech'] }
+            ];
+            const item = multiContext[this._rand(0, multiContext.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `📗 "${item.sentence.replace('___', item.word)}"\n\nIn this sentence, "${item.word}" means:`,
+                questionSpeak: `${item.sentence.replace('___', item.word)} In this sentence, what does ${item.word} mean?`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'vocabulary',
+                subtype: 'multi-meaning-context',
+                explanation: `In this sentence, "${item.word}" means ${item.correct}! Words can mean different things depending on how they are used!`,
+                explanationSpeak: `In this sentence, ${item.word} means ${item.correct}! The same word can mean different things in different sentences!`
+            };
+        }
+
+        // Shades of meaning (word nuance)
+        const shadeItems = [
+            { question: 'Which word means the MOST angry?', ordered: ['annoyed', 'mad', 'furious', 'enraged'], correct: 'furious', wrongs: ['annoyed', 'mad', 'upset'] },
+            { question: 'Which word means the LEAST happy?', ordered: ['content', 'pleased', 'happy', 'ecstatic'], correct: 'content', wrongs: ['pleased', 'happy', 'ecstatic'] },
+            { question: 'Which word means the BIGGEST?', ordered: ['large', 'big', 'huge', 'enormous'], correct: 'enormous', wrongs: ['large', 'big', 'huge'] },
+            { question: 'Which word means the MOST scared?', ordered: ['nervous', 'scared', 'frightened', 'terrified'], correct: 'terrified', wrongs: ['nervous', 'scared', 'frightened'] },
+            { question: 'Which word means the COLDEST?', ordered: ['cool', 'chilly', 'cold', 'freezing'], correct: 'freezing', wrongs: ['cool', 'chilly', 'cold'] },
+            { question: 'Which word means the FASTEST?', ordered: ['quick', 'fast', 'rapid', 'lightning-fast'], correct: 'lightning-fast', wrongs: ['quick', 'fast', 'rapid'] },
+            { question: 'Which word means the LEAST sad?', ordered: ['disappointed', 'sad', 'miserable', 'heartbroken'], correct: 'disappointed', wrongs: ['sad', 'miserable', 'heartbroken'] },
+            { question: 'Which word means the HOTTEST?', ordered: ['warm', 'hot', 'scorching', 'boiling'], correct: 'boiling', wrongs: ['warm', 'hot', 'scorching'] },
+            { question: 'Which word means to walk the SLOWEST?', ordered: ['stroll', 'walk', 'march', 'dash'], correct: 'stroll', wrongs: ['walk', 'march', 'dash'] },
+            { question: 'Which word means the MOST tired?', ordered: ['drowsy', 'tired', 'weary', 'exhausted'], correct: 'exhausted', wrongs: ['drowsy', 'tired', 'weary'] }
+        ];
+        const item = shadeItems[this._rand(0, shadeItems.length - 1)];
+        const answers = this._shuffle([item.correct, ...item.wrongs]);
+        return {
+            question: `📗 ${item.question}`,
+            questionSpeak: item.question,
+            answers,
+            correctIndex: answers.indexOf(item.correct),
+            topic: 'vocabulary',
+            subtype: 'shades-of-meaning',
+            explanation: `"${item.correct}" is the right answer! Words have different strengths: ${item.ordered.join(' < ')}`,
+            explanationSpeak: `${item.correct} is correct! Words can have similar meanings but different strengths!`
+        };
+    },
+
+    // ---- GRAMMAR 3RD GRADE ----
+    _grammar3rd(level) {
+        const roll = Math.random();
+
+        if (roll < 0.25) {
+            // Subject-verb agreement
+            const svaItems = [
+                { sentence: 'The dogs ___ in the yard.', correct: 'play', wrongs: ['plays', 'playing', 'played'] },
+                { sentence: 'She ___ to the store every day.', correct: 'goes', wrongs: ['go', 'going', 'gone'] },
+                { sentence: 'The birds ___ south for winter.', correct: 'fly', wrongs: ['flies', 'flying', 'flown'] },
+                { sentence: 'He ___ his homework after school.', correct: 'does', wrongs: ['do', 'doing', 'done'] },
+                { sentence: 'My cat ___ on the windowsill.', correct: 'sits', wrongs: ['sit', 'sitting', 'sat'] },
+                { sentence: 'The children ___ soccer at recess.', correct: 'play', wrongs: ['plays', 'playing', 'played'] },
+                { sentence: 'The teacher ___ the lesson clearly.', correct: 'explains', wrongs: ['explain', 'explaining', 'explained'] },
+                { sentence: 'The flowers ___ in the spring.', correct: 'bloom', wrongs: ['blooms', 'blooming', 'bloomed'] },
+                { sentence: 'My brother ___ the piano well.', correct: 'plays', wrongs: ['play', 'playing', 'played'] },
+                { sentence: 'The students ___ for the test.', correct: 'study', wrongs: ['studies', 'studying', 'studied'] }
+            ];
+            const item = svaItems[this._rand(0, svaItems.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `📝 Which word fits best?\n"${item.sentence}"`,
+                questionSpeak: `Which word fits best? ${item.sentence.replace('___', 'blank')}`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'grammar',
+                subtype: 'subject-verb-agreement',
+                explanation: `"${item.correct}" is correct! The subject and verb must agree in number!`,
+                explanationSpeak: `${item.correct} is correct! The subject and verb have to match!`
+            };
+        }
+
+        if (roll < 0.5) {
+            // Possessive nouns
+            const possItems = [
+                { sentence: 'The ___ toy is under the bed.', correct: "dog's", wrongs: ['dogs', 'dog', "dogs'"] },
+                { sentence: 'My ___ car is in the driveway.', correct: "mom's", wrongs: ['moms', 'mom', "moms'"] },
+                { sentence: 'The ___ wings are colorful.', correct: "butterfly's", wrongs: ['butterflys', 'butterfly', "butterflys'"] },
+                { sentence: 'All the ___ backpacks are in the closet.', correct: "students'", wrongs: ["student's", 'students', 'student'] },
+                { sentence: 'Both ___ toys were scattered on the floor.', correct: "children's", wrongs: ["childrens'", 'childrens', "childs'"] },
+                { sentence: 'The ___ nest is in the tree.', correct: "bird's", wrongs: ['birds', 'bird', "birds'"] },
+                { sentence: 'The two ___ leashes are tangled.', correct: "dogs'", wrongs: ["dog's", 'dogs', 'dog'] },
+                { sentence: 'My ___ office is downtown.', correct: "dad's", wrongs: ['dads', 'dad', "dads'"] }
+            ];
+            const item = possItems[this._rand(0, possItems.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `📝 Which word shows ownership?\n"${item.sentence}"`,
+                questionSpeak: `Which word shows ownership? ${item.sentence.replace('___', 'blank')}`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'grammar',
+                subtype: 'possessive-nouns',
+                explanation: `"${item.correct}" shows ownership! An apostrophe and s shows that something belongs to someone!`,
+                explanationSpeak: `${item.correct} is correct! We use an apostrophe to show that something belongs to someone!`
+            };
+        }
+
+        if (roll < 0.75) {
+            // Conjunctions (and, but, or, so, because)
+            const conjItems = [
+                { sentence: 'I wanted to play outside, ___ it was raining.', correct: 'but', wrongs: ['and', 'or', 'so'] },
+                { sentence: 'She studied hard, ___ she got an A on the test.', correct: 'so', wrongs: ['but', 'or', 'and'] },
+                { sentence: 'Do you want pizza ___ tacos for dinner?', correct: 'or', wrongs: ['and', 'but', 'so'] },
+                { sentence: 'We packed lunch ___ brought water bottles.', correct: 'and', wrongs: ['but', 'or', 'so'] },
+                { sentence: 'He wore a coat ___ it was very cold outside.', correct: 'because', wrongs: ['but', 'or', 'and'] },
+                { sentence: 'The movie was long, ___ it was really exciting.', correct: 'but', wrongs: ['so', 'or', 'because'] },
+                { sentence: 'She was tired, ___ she went to bed early.', correct: 'so', wrongs: ['but', 'and', 'or'] },
+                { sentence: 'We can go to the park ___ the library.', correct: 'or', wrongs: ['but', 'so', 'because'] },
+                { sentence: 'I like cats ___ dogs equally.', correct: 'and', wrongs: ['but', 'or', 'because'] },
+                { sentence: 'They stayed inside ___ the storm was loud.', correct: 'because', wrongs: ['and', 'or', 'but'] }
+            ];
+            const item = conjItems[this._rand(0, conjItems.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `📝 Pick the best connecting word:\n"${item.sentence}"`,
+                questionSpeak: `Pick the best connecting word. ${item.sentence.replace('___', 'blank')}`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'grammar',
+                subtype: 'conjunctions',
+                explanation: `"${item.correct}" connects the ideas! "${item.correct}" is a conjunction that joins parts of a sentence!`,
+                explanationSpeak: `${item.correct} is the best connecting word! Conjunctions like and, but, or, so, and because join ideas together!`
+            };
+        }
+
+        // Adverbs vs adjectives
+        const advAdjItems = [
+            { sentence: 'The rabbit ran ___.', correct: 'quickly', type: 'adverb', wrongs: ['quick', 'quicker', 'quickest'] },
+            { sentence: 'She spoke ___ during the library visit.', correct: 'quietly', type: 'adverb', wrongs: ['quiet', 'quieter', 'quietest'] },
+            { sentence: 'The ___ cat sat on the fence.', correct: 'fluffy', type: 'adjective', wrongs: ['fluffily', 'fluff', 'fluffier'] },
+            { sentence: 'He ___ finished his test.', correct: 'easily', type: 'adverb', wrongs: ['easy', 'easier', 'easiest'] },
+            { sentence: 'The ___ wind blew the leaves.', correct: 'strong', type: 'adjective', wrongs: ['strongly', 'stronger', 'strength'] },
+            { sentence: 'She sang ___ at the concert.', correct: 'beautifully', type: 'adverb', wrongs: ['beautiful', 'beauty', 'beautify'] },
+            { sentence: 'The ___ dog chased the ball.', correct: 'playful', type: 'adjective', wrongs: ['playfully', 'playing', 'played'] },
+            { sentence: 'He waited ___ for his turn.', correct: 'patiently', type: 'adverb', wrongs: ['patient', 'patience', 'patients'] }
+        ];
+        const item = advAdjItems[this._rand(0, advAdjItems.length - 1)];
+        const answers = this._shuffle([item.correct, ...item.wrongs]);
+        return {
+            question: `📝 Which word fits best?\n"${item.sentence}"`,
+            questionSpeak: `Which word fits best? ${item.sentence.replace('___', 'blank')}`,
+            answers,
+            correctIndex: answers.indexOf(item.correct),
+            topic: 'grammar',
+            subtype: 'adverb-adjective',
+            explanation: `"${item.correct}" is an ${item.type}! ${item.type === 'adverb' ? 'Adverbs describe how something is done.' : 'Adjectives describe a noun.'}`,
+            explanationSpeak: `${item.correct} is correct! ${item.type === 'adverb' ? 'Adverbs tell us how something is done and often end in ly.' : 'Adjectives describe what something is like.'}`
+        };
+    },
+
+    // ---- COMPREHENSION 3RD GRADE ----
+    _comprehension3rd(level) {
+        const roll = Math.random();
+
+        if (roll < 0.35) {
+            // Longer passages with inference questions
+            const inferPassages = [
+                { text: 'Maria put on her jersey, laced up her cleats, and grabbed her shin guards. Her dad honked the horn in the driveway.',
+                  q: 'Where is Maria probably going?', correct: 'a soccer game', wrongs: ['a swimming pool', 'a birthday party', 'the grocery store'] },
+                { text: 'The classroom was decorated with balloons and streamers. A cake sat on the teacher\'s desk. Everyone wore party hats.',
+                  q: 'What is probably happening?', correct: 'a class party', wrongs: ['a fire drill', 'a math test', 'picture day'] },
+                { text: 'Tyler looked at the dark clouds and grabbed his umbrella. He zipped up his raincoat before heading out the door.',
+                  q: 'What is the weather probably like?', correct: 'rainy', wrongs: ['sunny and hot', 'snowy and cold', 'clear and dry'] },
+                { text: 'Grandma pulled the cookies out of the oven. The whole house smelled like chocolate. She set them on a rack to cool.',
+                  q: 'What kind of cookies did Grandma make?', correct: 'chocolate chip', wrongs: ['peanut butter', 'oatmeal raisin', 'sugar cookies'] },
+                { text: 'The audience clapped and cheered. The actors bowed on stage. Parents took pictures from their seats.',
+                  q: 'What just ended?', correct: 'a play or show', wrongs: ['a football game', 'a fire drill', 'a regular school day'] },
+                { text: 'Sam groaned when his alarm went off. He slowly put on his backpack and walked to the bus stop. It was Monday morning.',
+                  q: 'How does Sam probably feel about going to school?', correct: 'tired and not excited', wrongs: ['thrilled and eager', 'angry and mean', 'scared and shaking'] },
+                { text: 'The vet carefully wrapped the puppy\'s leg in a bandage. The puppy whimpered softly. Its owner looked worried.',
+                  q: 'What probably happened to the puppy?', correct: 'it hurt its leg', wrongs: ['it learned a trick', 'it got a bath', 'it ate too much'] },
+                { text: 'Eva stacked boxes in the moving truck. She took one last look at her empty bedroom. Her mom said they would love the new house.',
+                  q: 'What is happening?', correct: 'Eva is moving to a new home', wrongs: ['Eva is cleaning her room', 'Eva is going on vacation', 'Eva is having a yard sale'] }
+            ];
+            const item = inferPassages[this._rand(0, inferPassages.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `📖 Read this:\n"${item.text}"\n\n${item.q}`,
+                questionSpeak: `${item.text} ${item.q}`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'comprehension',
+                subtype: 'inference-3rd',
+                explanation: `"${item.correct}" makes the most sense! Good readers use clues in the text to figure things out!`,
+                explanationSpeak: `${item.correct} is right! The clues in the story helped us figure out the answer!`
+            };
+        }
+
+        if (roll < 0.65) {
+            // Author's purpose
+            const purposeItems = [
+                { text: 'Dolphins are amazing swimmers. They can hold their breath for up to 15 minutes and swim over 20 miles per hour.', correct: 'to inform or teach', wrongs: ['to make you laugh', 'to convince you to buy something', 'to scare you'] },
+                { text: 'You should always wear a helmet when riding a bike. Helmets protect your head and could save your life!', correct: 'to persuade or convince', wrongs: ['to make you laugh', 'to tell a story', 'to teach about helmets'] },
+                { text: 'The silly monkey put the banana on its head like a hat. All the other monkeys laughed and laughed!', correct: 'to entertain', wrongs: ['to teach about monkeys', 'to convince you to eat bananas', 'to scare you'] },
+                { text: 'The water cycle starts when the sun heats up water. The water turns into vapor, rises, forms clouds, and falls back as rain.', correct: 'to inform or teach', wrongs: ['to make you laugh', 'to tell a scary story', 'to convince you to like rain'] },
+                { text: 'Our school needs a new playground! The old one is broken and unsafe. Please sign this petition to help us get a new one.', correct: 'to persuade or convince', wrongs: ['to entertain you', 'to teach about playgrounds', 'to tell a story'] },
+                { text: 'Once upon a time, a tiny dragon sneezed and accidentally set his lunch on fire. "Not again!" he sighed.', correct: 'to entertain', wrongs: ['to teach about fire safety', 'to convince you to be careful', 'to inform about dragons'] },
+                { text: 'A recipe: Mix 2 cups flour, 1 cup sugar, and 3 eggs. Bake at 350 degrees for 30 minutes.', correct: 'to inform or teach', wrongs: ['to entertain', 'to persuade you to bake', 'to tell a story'] },
+                { text: 'Everyone should read for at least 20 minutes a day. Reading makes you smarter and helps you do better in school!', correct: 'to persuade or convince', wrongs: ['to entertain', 'to inform about books', 'to tell a story about reading'] }
+            ];
+            const item = purposeItems[this._rand(0, purposeItems.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `📖 Why did the author write this?\n"${item.text}"`,
+                questionSpeak: `Why did the author write this? ${item.text}`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'comprehension',
+                subtype: 'authors-purpose',
+                explanation: `The author's purpose is ${item.correct}! Authors write to inform, persuade, or entertain!`,
+                explanationSpeak: `The author wrote this ${item.correct}! Authors write for different reasons, like to teach, to convince, or to entertain!`
+            };
+        }
+
+        // Story elements (setting, characters, problem, solution)
+        const storyElements = [
+            { text: 'Lily was lost in the forest. The trees were tall and the path had disappeared. She followed the sound of a stream and found her way back to camp.',
+              q: 'What was the PROBLEM in the story?', correct: 'Lily was lost', wrongs: ['The trees were tall', 'The stream was loud', 'The camp was far away'] },
+            { text: 'On a snowy winter morning, Jake\'s sled broke on the first hill. He used tape and rope to fix it, and by lunchtime he was sledding again!',
+              q: 'What was the SOLUTION?', correct: 'He fixed the sled with tape and rope', wrongs: ['He bought a new sled', 'He went home', 'He built a snowman instead'] },
+            { text: 'In the busy city of New York, a small mouse named Chester lived inside a subway station. Every night he searched for crumbs left by travelers.',
+              q: 'What is the SETTING of this story?', correct: 'a subway station in New York', wrongs: ['a farm in the country', 'a school classroom', 'a forest in the mountains'] },
+            { text: 'Rosa wanted to join the talent show but was too nervous to sing alone. Her best friend Maya said they could sing together, and Rosa agreed happily.',
+              q: 'Who helped solve the problem?', correct: 'Maya', wrongs: ['Rosa', 'the teacher', 'Rosa\'s mom'] },
+            { text: 'Captain Finn sailed his ship through a terrible storm. The waves crashed over the deck and the wind tore the sails. He steered toward a small island to wait it out.',
+              q: 'What was the SETTING?', correct: 'the ocean during a storm', wrongs: ['a quiet lake', 'a sandy beach', 'a calm river'] },
+            { text: 'When Mia\'s science project broke the night before the fair, she stayed up late rebuilding it with better materials. She won second place!',
+              q: 'What was the PROBLEM?', correct: 'Her science project broke', wrongs: ['She won second place', 'She stayed up late', 'The fair was canceled'] }
+        ];
+        const item = storyElements[this._rand(0, storyElements.length - 1)];
+        const answers = this._shuffle([item.correct, ...item.wrongs]);
+        return {
+            question: `📖 Read this:\n"${item.text}"\n\n${item.q}`,
+            questionSpeak: `${item.text} ${item.q}`,
+            answers,
+            correctIndex: answers.indexOf(item.correct),
+            topic: 'comprehension',
+            subtype: 'story-elements',
+            explanation: `"${item.correct}" is right! Stories have characters, a setting, a problem, and a solution!`,
+            explanationSpeak: `${item.correct} is correct! Every story has characters, a setting, a problem, and a solution!`
+        };
+    },
+
+    // ---- MULTI-SYLLABLE DECODING ----
+    _multiSyllable(level) {
+        const roll = Math.random();
+
+        if (roll < 0.3) {
+            // Count syllables in longer words
+            const syllableWords = [
+                { word: 'elephant', syllables: 3, breakdown: 'el-e-phant' },
+                { word: 'butterfly', syllables: 3, breakdown: 'but-ter-fly' },
+                { word: 'basketball', syllables: 3, breakdown: 'bas-ket-ball' },
+                { word: 'understand', syllables: 3, breakdown: 'un-der-stand' },
+                { word: 'important', syllables: 3, breakdown: 'im-por-tant' },
+                { word: 'impossible', syllables: 4, breakdown: 'im-pos-si-ble' },
+                { word: 'celebration', syllables: 5, breakdown: 'cel-e-bra-tion' },
+                { word: 'caterpillar', syllables: 4, breakdown: 'cat-er-pil-lar' },
+                { word: 'watermelon', syllables: 4, breakdown: 'wa-ter-mel-on' },
+                { word: 'bicycle', syllables: 3, breakdown: 'bi-cy-cle' },
+                { word: 'dinosaur', syllables: 3, breakdown: 'di-no-saur' },
+                { word: 'refrigerator', syllables: 5, breakdown: 're-frig-er-a-tor' },
+                { word: 'interesting', syllables: 4, breakdown: 'in-ter-est-ing' },
+                { word: 'information', syllables: 4, breakdown: 'in-for-ma-tion' },
+                { word: 'imagination', syllables: 5, breakdown: 'i-mag-i-na-tion' },
+                { word: 'temperature', syllables: 4, breakdown: 'tem-per-a-ture' },
+                { word: 'September', syllables: 3, breakdown: 'Sep-tem-ber' },
+                { word: 'yesterday', syllables: 3, breakdown: 'yes-ter-day' }
+            ];
+            const item = syllableWords[this._rand(0, syllableWords.length - 1)];
+            const wrongs = [];
+            this._fillWrongs(wrongs, [2, 3, 4, 5, 6].filter(n => n !== item.syllables), item.syllables, 3);
+            const answers = this._shuffle([item.syllables, ...wrongs]);
+            return {
+                question: `🧩 How many syllables are in\n"${item.word}"?`,
+                questionSpeak: `How many syllables are in the word ${item.word}?`,
+                answers: answers.map(String),
+                correctIndex: answers.indexOf(item.syllables),
+                topic: 'multi-syllable',
+                subtype: 'count-syllables',
+                explanation: `"${item.word}" has ${item.syllables} syllables: ${item.breakdown}! Clap it out!`,
+                explanationSpeak: `${item.word} has ${item.syllables} syllables: ${item.breakdown}!`
+            };
+        }
+
+        if (roll < 0.6) {
+            // Break word into syllables
+            const breakWords = [
+                { word: 'pumpkin', correct: 'pump-kin', wrongs: ['pu-mpkin', 'pum-pkin', 'pump-ki-n'] },
+                { word: 'napkin', correct: 'nap-kin', wrongs: ['na-pkin', 'napk-in', 'n-apkin'] },
+                { word: 'rabbit', correct: 'rab-bit', wrongs: ['ra-bbit', 'rabb-it', 'r-abbit'] },
+                { word: 'sunset', correct: 'sun-set', wrongs: ['su-nset', 'suns-et', 'sun-s-et'] },
+                { word: 'fantastic', correct: 'fan-tas-tic', wrongs: ['fant-as-tic', 'fa-ntas-tic', 'fan-ta-stic'] },
+                { word: 'adventure', correct: 'ad-ven-ture', wrongs: ['adv-en-ture', 'a-dven-ture', 'ad-vent-ure'] },
+                { word: 'November', correct: 'No-vem-ber', wrongs: ['Nov-em-ber', 'No-ve-mber', 'Novem-ber'] },
+                { word: 'remember', correct: 're-mem-ber', wrongs: ['rem-em-ber', 'r-emem-ber', 're-memb-er'] },
+                { word: 'hamburger', correct: 'ham-bur-ger', wrongs: ['hamb-ur-ger', 'ha-mbur-ger', 'ham-burg-er'] },
+                { word: 'umbrella', correct: 'um-brel-la', wrongs: ['umb-rel-la', 'um-bre-lla', 'umbr-el-la'] },
+                { word: 'lemonade', correct: 'lem-on-ade', wrongs: ['le-mon-ade', 'lemon-ade', 'lem-o-nade'] },
+                { word: 'September', correct: 'Sep-tem-ber', wrongs: ['Sept-em-ber', 'Se-ptem-ber', 'Sep-temb-er'] }
+            ];
+            const item = breakWords[this._rand(0, breakWords.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `🧩 How do you break this word into syllables?\n"${item.word}"`,
+                questionSpeak: `How do you break the word ${item.word} into syllables?`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'multi-syllable',
+                subtype: 'break-syllables',
+                explanation: `"${item.word}" breaks into ${item.correct}! Each syllable has a vowel sound!`,
+                explanationSpeak: `${item.word} breaks into ${item.correct}! Remember, each syllable has one vowel sound!`
+            };
+        }
+
+        if (roll < 0.85) {
+            // Read the word (decode multi-syllable)
+            const decodeWords = [
+                { word: 'thunderstorm', correct: 'thun-der-storm', hint: 'a storm with loud booms', wrongs: ['a type of dance', 'a musical instrument', 'a kind of sandwich'] },
+                { word: 'playground', correct: 'play-ground', hint: 'where kids go at recess', wrongs: ['a theater stage', 'a type of soil', 'a classroom'] },
+                { word: 'dishwasher', correct: 'dish-wash-er', hint: 'a machine that cleans plates', wrongs: ['a type of soap', 'a kitchen table', 'a kind of towel'] },
+                { word: 'earthquake', correct: 'earth-quake', hint: 'when the ground shakes', wrongs: ['a kind of cake', 'a math problem', 'a loud song'] },
+                { word: 'supermarket', correct: 'su-per-mar-ket', hint: 'a big store with food', wrongs: ['a type of hero', 'a running race', 'a computer game'] },
+                { word: 'uncomfortable', correct: 'un-com-for-ta-ble', hint: 'not feeling good or cozy', wrongs: ['very happy', 'easily broken', 'nice and warm'] },
+                { word: 'nighttime', correct: 'night-time', hint: 'when it is dark outside', wrongs: ['early morning', 'afternoon', 'lunchtime'] },
+                { word: 'understand', correct: 'un-der-stand', hint: 'to know what something means', wrongs: ['to stand on top', 'to sit down', 'to walk around'] }
+            ];
+            const item = decodeWords[this._rand(0, decodeWords.length - 1)];
+            const answers = this._shuffle([item.hint, ...item.wrongs]);
+            return {
+                question: `🧩 What does this word mean?\n"${item.word}"\n(Break it apart: ${item.correct})`,
+                questionSpeak: `What does the word ${item.word} mean? Break it apart: ${item.correct}.`,
+                answers,
+                correctIndex: answers.indexOf(item.hint),
+                topic: 'multi-syllable',
+                subtype: 'decode-meaning',
+                explanation: `"${item.word}" (${item.correct}) means ${item.hint}! Breaking big words into parts helps you read them!`,
+                explanationSpeak: `${item.word} means ${item.hint}! Breaking big words into smaller parts makes them easier to read!`
+            };
+        }
+
+        // Which word has the most syllables?
+        const groups = [
+            { words: ['cat', 'elephant', 'dog', 'fish'], correct: 'elephant', count: 3 },
+            { words: ['run', 'celebration', 'jump', 'walk'], correct: 'celebration', count: 5 },
+            { words: ['big', 'interesting', 'red', 'hot'], correct: 'interesting', count: 4 },
+            { words: ['tree', 'sun', 'caterpillar', 'moon'], correct: 'caterpillar', count: 4 },
+            { words: ['play', 'refrigerator', 'ball', 'game'], correct: 'refrigerator', count: 5 },
+            { words: ['book', 'imagination', 'pen', 'desk'], correct: 'imagination', count: 5 },
+            { words: ['hat', 'watermelon', 'bat', 'map'], correct: 'watermelon', count: 4 },
+            { words: ['car', 'bus', 'helicopter', 'van'], correct: 'helicopter', count: 4 }
+        ];
+        const item = groups[this._rand(0, groups.length - 1)];
+        const answers = this._shuffle(item.words);
+        return {
+            question: `🧩 Which word has the MOST syllables?`,
+            questionSpeak: `Which word has the most syllables?`,
+            answers,
+            correctIndex: answers.indexOf(item.correct),
+            topic: 'multi-syllable',
+            subtype: 'most-syllables',
+            explanation: `"${item.correct}" has the most syllables (${item.count})! The other words have fewer!`,
+            explanationSpeak: `${item.correct} has the most syllables with ${item.count}! Longer words usually have more syllables!`
+        };
+    },
+
+    // ---- CONTEXT CLUES (standalone 3rd grade topic) ----
+    _contextClues(level) {
+        const roll = Math.random();
+
+        if (roll < 0.4) {
+            // Definition clues (the sentence defines the word)
+            const defClues = [
+                { sentence: 'A habitat, the natural home of an animal, can be a forest, ocean, or desert.', word: 'habitat', correct: 'where an animal naturally lives', wrongs: ['a type of food', 'a way animals move', 'a baby animal'] },
+                { sentence: 'The metamorphosis of a caterpillar means it changes completely into a butterfly.', word: 'metamorphosis', correct: 'a complete change in form', wrongs: ['a type of insect', 'the color of wings', 'a kind of flower'] },
+                { sentence: 'Erosion, the wearing away of land by water or wind, shaped the Grand Canyon over millions of years.', word: 'erosion', correct: 'land being worn away by water or wind', wrongs: ['building something new', 'planting trees', 'an earthquake'] },
+                { sentence: 'A peninsula is a piece of land that is surrounded by water on three sides.', word: 'peninsula', correct: 'land surrounded by water on three sides', wrongs: ['an island', 'a mountain', 'a river'] },
+                { sentence: 'Hibernation, a deep sleep that lasts all winter, helps bears survive the cold months.', word: 'hibernation', correct: 'a deep sleep that lasts all winter', wrongs: ['eating a big meal', 'running south', 'building a den'] },
+                { sentence: 'An herbivore, or plant-eating animal, gets all its food from leaves, grass, and fruits.', word: 'herbivore', correct: 'an animal that eats only plants', wrongs: ['an animal that eats meat', 'a type of plant', 'a kind of fruit'] }
+            ];
+            const item = defClues[this._rand(0, defClues.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `🔍 "${item.sentence}"\n\nWhat does "${item.word}" mean?`,
+                questionSpeak: `${item.sentence} What does ${item.word} mean?`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'context-clues',
+                subtype: 'definition-clue',
+                explanation: `"${item.word}" means ${item.correct}! The sentence actually tells us the definition!`,
+                explanationSpeak: `${item.word} means ${item.correct}! Sometimes the sentence gives you the definition right there!`
+            };
+        }
+
+        if (roll < 0.7) {
+            // Example clues (examples help define the word)
+            const exClues = [
+                { sentence: 'Many types of precipitation, such as rain, snow, sleet, and hail, fall from clouds.', word: 'precipitation', correct: 'water falling from the sky', wrongs: ['types of clouds', 'wind patterns', 'temperature changes'] },
+                { sentence: 'Reptiles, including snakes, lizards, and turtles, are cold-blooded animals.', word: 'reptiles', correct: 'cold-blooded animals like snakes and lizards', wrongs: ['animals with fur', 'animals that fly', 'animals that live in water'] },
+                { sentence: 'She felt many emotions, like happiness, sadness, and excitement, on her last day of school.', word: 'emotions', correct: 'feelings', wrongs: ['thoughts', 'actions', 'dreams'] },
+                { sentence: 'Citrus fruits, such as oranges, lemons, and grapefruits, are high in vitamin C.', word: 'citrus', correct: 'a group of sour, juicy fruits', wrongs: ['a type of vegetable', 'a kind of vitamin', 'a way of cooking'] },
+                { sentence: 'Nocturnal animals, like owls, bats, and raccoons, are active at night.', word: 'nocturnal', correct: 'active at night', wrongs: ['very fast', 'living in trees', 'eating insects'] },
+                { sentence: 'Natural disasters, such as hurricanes, earthquakes, and floods, can cause a lot of damage.', word: 'natural disasters', correct: 'dangerous events caused by nature', wrongs: ['man-made accidents', 'types of weather', 'things that happen slowly'] }
+            ];
+            const item = exClues[this._rand(0, exClues.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `🔍 "${item.sentence}"\n\nWhat does "${item.word}" mean?`,
+                questionSpeak: `${item.sentence} What does ${item.word} mean?`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'context-clues',
+                subtype: 'example-clue',
+                explanation: `"${item.word}" means ${item.correct}! The examples in the sentence helped us figure it out!`,
+                explanationSpeak: `${item.word} means ${item.correct}! The examples like and such as helped us understand the word!`
+            };
+        }
+
+        // Contrast clues (opposite info helps define the word)
+        const contrastClues = [
+            { sentence: 'Unlike her timid sister, Maya was bold and always spoke up in class.', word: 'bold', correct: 'brave and confident', wrongs: ['quiet and shy', 'mean and rude', 'funny and silly'] },
+            { sentence: 'The first path was smooth, but the alternate route was rugged and bumpy.', word: 'rugged', correct: 'rough and uneven', wrongs: ['flat and easy', 'short and quick', 'wet and slippery'] },
+            { sentence: 'While the desert is arid, the rainforest gets tons of rain every year.', word: 'arid', correct: 'very dry', wrongs: ['very wet', 'very cold', 'very flat'] },
+            { sentence: 'Instead of being generous like his brother, Tom was greedy and never shared.', word: 'greedy', correct: 'wanting to keep everything', wrongs: ['kind and giving', 'funny and silly', 'quiet and calm'] },
+            { sentence: 'The new student was timid at first, unlike the other kids who were outgoing and friendly.', word: 'timid', correct: 'shy and nervous', wrongs: ['loud and bold', 'happy and silly', 'angry and mean'] },
+            { sentence: 'Although the movie was supposed to be hilarious, I thought it was quite dull.', word: 'dull', correct: 'boring and not interesting', wrongs: ['very funny', 'extremely scary', 'really long'] }
+        ];
+        const item = contrastClues[this._rand(0, contrastClues.length - 1)];
+        const answers = this._shuffle([item.correct, ...item.wrongs]);
+        return {
+            question: `🔍 "${item.sentence}"\n\nWhat does "${item.word}" mean?`,
+            questionSpeak: `${item.sentence} What does ${item.word} mean?`,
+            answers,
+            correctIndex: answers.indexOf(item.correct),
+            topic: 'context-clues',
+            subtype: 'contrast-clue',
+            explanation: `"${item.word}" means ${item.correct}! Words like "unlike" and "but" tell us the opposite, which helps us figure out the word!`,
+            explanationSpeak: `${item.word} means ${item.correct}! Contrast words like unlike and but help us understand new words by showing the opposite!`
+        };
+    },
+
+    // ---- MAIN IDEA & SUPPORTING DETAILS ----
+    _mainIdeaDetail(level) {
+        const roll = Math.random();
+
+        if (roll < 0.4) {
+            // Identify the main idea
+            const mainIdeaItems = [
+                { text: 'Sharks have been on Earth for over 400 million years. They were here before dinosaurs! There are over 500 kinds of sharks. Most sharks are not dangerous to people. Only about 12 types have ever bitten a human.',
+                  q: 'What is the MAIN IDEA?', correct: 'Sharks are ancient and mostly harmless', wrongs: ['Sharks are very dangerous', 'Dinosaurs ate sharks', 'There are 12 kinds of sharks'] },
+                { text: 'Honeybees do an important job. They fly from flower to flower, spreading pollen. This helps flowers and fruits grow. Without bees, we would lose many of the foods we eat every day.',
+                  q: 'What is the MAIN IDEA?', correct: 'Bees help our food grow by spreading pollen', wrongs: ['Bees make a lot of honey', 'Flowers are very pretty', 'Bees can sting people'] },
+                { text: 'Getting enough sleep is important for kids. Sleep helps your brain learn and remember things. It also helps your body grow and stay healthy. Most kids need 9 to 12 hours of sleep each night.',
+                  q: 'What is the MAIN IDEA?', correct: 'Sleep is important for kids\' brains and bodies', wrongs: ['Kids should sleep 12 hours', 'Brains need exercise', 'Healthy food helps you sleep'] },
+                { text: 'Recycling helps protect our planet. When we recycle paper, fewer trees need to be cut down. Recycling plastic keeps it out of the ocean. Recycling aluminum cans saves energy.',
+                  q: 'What is the MAIN IDEA?', correct: 'Recycling protects the environment in many ways', wrongs: ['Paper comes from trees', 'Plastic is in the ocean', 'Aluminum cans are shiny'] },
+                { text: 'Desert animals have special ways to survive the heat. Camels store fat in their humps for energy. Jackrabbits have large ears that release heat. Many desert animals only come out at night when it is cooler.',
+                  q: 'What is the MAIN IDEA?', correct: 'Desert animals have adaptations for surviving heat', wrongs: ['Camels have humps', 'Jackrabbits have big ears', 'Deserts are very hot'] },
+                { text: 'The Amazon River is the largest river in the world by volume. It flows through South America and empties into the Atlantic Ocean. The river is home to thousands of fish species, including piranhas and electric eels.',
+                  q: 'What is the MAIN IDEA?', correct: 'The Amazon River is huge and full of life', wrongs: ['Piranhas are scary', 'South America is big', 'The Atlantic is an ocean'] }
+            ];
+            const item = mainIdeaItems[this._rand(0, mainIdeaItems.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `🎯 Read this:\n"${item.text}"\n\n${item.q}`,
+                questionSpeak: `${item.text} ${item.q}`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'main-idea-detail',
+                subtype: 'find-main-idea',
+                explanation: `The main idea is "${item.correct}"! The main idea is the big, overall point the author is making!`,
+                explanationSpeak: `The main idea is ${item.correct}! The main idea is the biggest, most important point of the passage!`
+            };
+        }
+
+        if (roll < 0.7) {
+            // Which is a SUPPORTING DETAIL?
+            const detailItems = [
+                { text: 'Frogs are amazing animals. They can jump 20 times their body length. Some frogs are tiny enough to sit on a coin. Frogs live on every continent except Antarctica.',
+                  mainIdea: 'Frogs are amazing', q: 'Which is a SUPPORTING DETAIL?', correct: 'They can jump 20 times their body length', wrongs: ['Frogs are amazing animals', 'Frogs are alive', 'Animals live in nature'] },
+                { text: 'Exercise is great for your health. It makes your heart stronger. It helps you sleep better at night. Exercise also makes your bones stronger.',
+                  mainIdea: 'Exercise is great for health', q: 'Which is a SUPPORTING DETAIL?', correct: 'It makes your heart stronger', wrongs: ['Exercise is great for health', 'People can move', 'Everyone has a body'] },
+                { text: 'Benjamin Franklin was an important American. He helped write the Declaration of Independence. He invented the lightning rod. He also started the first public library.',
+                  mainIdea: 'Franklin was important', q: 'Which is a SUPPORTING DETAIL?', correct: 'He invented the lightning rod', wrongs: ['Franklin was an important American', 'America is a country', 'People are important'] },
+                { text: 'Spiders are helpful creatures. They eat mosquitoes and flies that bother people. Some spiders eat harmful insects that damage crops. Without spiders, there would be too many bugs.',
+                  mainIdea: 'Spiders are helpful', q: 'Which is a SUPPORTING DETAIL?', correct: 'They eat mosquitoes and flies', wrongs: ['Spiders are helpful creatures', 'Spiders exist', 'Bugs are insects'] },
+                { text: 'The Great Wall of China is an incredible structure. It stretches over 13,000 miles. It was built over many centuries by thousands of workers. Parts of the wall are over 2,000 years old.',
+                  mainIdea: 'The Great Wall is incredible', q: 'Which is a SUPPORTING DETAIL?', correct: 'It stretches over 13,000 miles', wrongs: ['The Great Wall is incredible', 'China is a country', 'Walls are structures'] },
+                { text: 'Owls are amazing hunters. Their eyes can see in almost total darkness. Their feathers are specially shaped so they fly silently. They can turn their heads nearly all the way around.',
+                  mainIdea: 'Owls are great hunters', q: 'Which is a SUPPORTING DETAIL?', correct: 'Their feathers let them fly silently', wrongs: ['Owls are amazing hunters', 'Owls are birds', 'Birds can fly'] }
+            ];
+            const item = detailItems[this._rand(0, detailItems.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `🎯 Read this:\n"${item.text}"\n\n${item.q}`,
+                questionSpeak: `${item.text} ${item.q}`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'main-idea-detail',
+                subtype: 'find-detail',
+                explanation: `"${item.correct}" is a supporting detail! It gives specific information to back up the main idea: "${item.mainIdea}"!`,
+                explanationSpeak: `${item.correct} is a supporting detail! Details give specific facts and examples to support the main idea!`
+            };
+        }
+
+        // Main idea vs detail: "Is this a main idea or a detail?"
+        const classifyItems = [
+            { statement: 'Dogs make great pets.', correct: 'Main Idea', context: 'A paragraph about why dogs are wonderful pets' },
+            { statement: 'Dogs can learn over 100 words.', correct: 'Supporting Detail', context: 'A paragraph about why dogs are wonderful pets' },
+            { statement: 'The ocean is home to many animals.', correct: 'Main Idea', context: 'A paragraph about ocean life' },
+            { statement: 'Blue whales are the largest animals on Earth.', correct: 'Supporting Detail', context: 'A paragraph about ocean life' },
+            { statement: 'George Washington was an important leader.', correct: 'Main Idea', context: 'A paragraph about George Washington' },
+            { statement: 'He was the first President of the United States.', correct: 'Supporting Detail', context: 'A paragraph about George Washington' },
+            { statement: 'Plants need several things to grow.', correct: 'Main Idea', context: 'A paragraph about what plants need' },
+            { statement: 'Plants need sunlight to make food.', correct: 'Supporting Detail', context: 'A paragraph about what plants need' },
+            { statement: 'There are many ways to stay healthy.', correct: 'Main Idea', context: 'A paragraph about being healthy' },
+            { statement: 'Eating fruits and vegetables gives your body vitamins.', correct: 'Supporting Detail', context: 'A paragraph about being healthy' }
+        ];
+        const item = classifyItems[this._rand(0, classifyItems.length - 1)];
+        const answers = this._shuffle(['Main Idea', 'Supporting Detail', 'Not Important', 'The Title']);
+        return {
+            question: `🎯 In a paragraph about: "${item.context}"\n\nIs this the MAIN IDEA or a DETAIL?\n"${item.statement}"`,
+            questionSpeak: `In a paragraph about ${item.context}, is this the main idea or a supporting detail? ${item.statement}`,
+            answers,
+            correctIndex: answers.indexOf(item.correct),
+            topic: 'main-idea-detail',
+            subtype: 'classify-idea-detail',
+            explanation: `"${item.statement}" is a ${item.correct}! ${item.correct === 'Main Idea' ? 'It tells the big point of the whole paragraph!' : 'It gives specific information that supports the main idea!'}`,
+            explanationSpeak: `That is a ${item.correct}! ${item.correct === 'Main Idea' ? 'The main idea tells the big point of the whole paragraph!' : 'A supporting detail gives specific facts to back up the main idea!'}`
+        };
+    },
+
+    // ---- CAUSE AND EFFECT ----
+    _causeEffect(level) {
+        const roll = Math.random();
+
+        if (roll < 0.4) {
+            // What caused this?
+            const causeItems = [
+                { effect: 'The sidewalk was covered in puddles.', correct: 'It rained earlier.', wrongs: ['The sun was shining.', 'It was very windy.', 'Someone painted it.'] },
+                { effect: 'All the lights in the house went out.', correct: 'The power went out.', wrongs: ['Someone turned on the TV.', 'The sun came up.', 'The door opened.'] },
+                { effect: 'The ice cream melted all over her hand.', correct: 'It was a very hot day.', wrongs: ['She put it in the freezer.', 'It was snowing outside.', 'She wore gloves.'] },
+                { effect: 'The plant grew very tall and healthy.', correct: 'It got plenty of water and sunlight.', wrongs: ['It was kept in a dark closet.', 'Nobody watered it.', 'It was too cold outside.'] },
+                { effect: 'The boy\'s stomach was growling loudly.', correct: 'He hadn\'t eaten since breakfast.', wrongs: ['He just ate a big lunch.', 'He was doing jumping jacks.', 'He was reading a book.'] },
+                { effect: 'The girl got a gold star on her paper.', correct: 'She got all the answers right.', wrongs: ['She forgot her homework.', 'She was late to class.', 'She lost her pencil.'] },
+                { effect: 'The snowman started to melt.', correct: 'The temperature got warmer.', wrongs: ['More snow fell.', 'The wind blew harder.', 'Someone added more snow.'] },
+                { effect: 'The dog was wagging its tail and jumping around.', correct: 'Its owner came home.', wrongs: ['It was sleeping.', 'It was raining outside.', 'The lights turned off.'] }
+            ];
+            const item = causeItems[this._rand(0, causeItems.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `⚡ What CAUSED this to happen?\n"${item.effect}"`,
+                questionSpeak: `What caused this to happen? ${item.effect}`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'cause-effect',
+                subtype: 'find-cause',
+                explanation: `"${item.correct}" is the cause! It is what made "${item.effect.replace(/\.$/, '')}" happen!`,
+                explanationSpeak: `${item.correct} That is the cause, the reason it happened!`
+            };
+        }
+
+        if (roll < 0.7) {
+            // What is the effect?
+            const effectItems = [
+                { cause: 'The boy forgot to set his alarm.', correct: 'He overslept and was late for school.', wrongs: ['He woke up early.', 'He had extra time for breakfast.', 'He got to school on time.'] },
+                { cause: 'The girl practiced piano every day for a month.', correct: 'She played her song perfectly at the recital.', wrongs: ['She forgot how to play.', 'She broke the piano.', 'She stopped liking music.'] },
+                { cause: 'It snowed 12 inches overnight.', correct: 'School was cancelled the next day.', wrongs: ['Everyone went swimming.', 'The flowers bloomed.', 'It was very hot outside.'] },
+                { cause: 'The cat knocked the vase off the table.', correct: 'The vase fell and broke into pieces.', wrongs: ['The vase floated in the air.', 'The table moved by itself.', 'The cat turned invisible.'] },
+                { cause: 'Mom added too much salt to the soup.', correct: 'The soup tasted too salty to eat.', wrongs: ['The soup was delicious.', 'The soup turned purple.', 'The soup was too sweet.'] },
+                { cause: 'The wind blew very hard during the storm.', correct: 'A big tree branch fell in the yard.', wrongs: ['The leaves grew back.', 'The tree got taller.', 'New flowers bloomed.'] },
+                { cause: 'She left her bike out in the rain for weeks.', correct: 'The bike started to rust.', wrongs: ['The bike got faster.', 'The bike grew bigger.', 'The bike turned blue.'] },
+                { cause: 'The class was very loud and rowdy.', correct: 'The teacher asked everyone to quiet down.', wrongs: ['The teacher gave out candy.', 'Recess was extended.', 'A party started.'] }
+            ];
+            const item = effectItems[this._rand(0, effectItems.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `⚡ What is the EFFECT?\n"${item.cause}"`,
+                questionSpeak: `What is the effect? ${item.cause}`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'cause-effect',
+                subtype: 'find-effect',
+                explanation: `"${item.correct}" is the effect! It is what happened because of the cause!`,
+                explanationSpeak: `${item.correct} That is the effect, what happened as a result!`
+            };
+        }
+
+        // Cause and effect from a passage
+        const passageItems = [
+            { text: 'Mia forgot her umbrella at home. On the way to school, it started to pour. By the time she got to class, she was completely soaked.',
+              q: 'Why was Mia soaked?', correct: 'She forgot her umbrella and it rained', wrongs: ['She went swimming', 'She spilled her water', 'She took a shower'] },
+            { text: 'The farmer did not water his crops all summer. The sun beat down day after day. By September, the corn was brown and dried up.',
+              q: 'Why did the corn dry up?', correct: 'No water and too much sun', wrongs: ['Too much rain', 'The corn was old', 'Animals ate it'] },
+            { text: 'Jake studied for his spelling test every night. He practiced writing each word five times. On Friday, he got a perfect score!',
+              q: 'Why did Jake get a perfect score?', correct: 'He studied and practiced every night', wrongs: ['The test was easy', 'His friend helped him cheat', 'He got lucky'] },
+            { text: 'The road was covered in ice after the freezing rain. A car drove too fast around the curve. It slid off the road into a ditch.',
+              q: 'What caused the car to slide?', correct: 'Ice on the road and driving too fast', wrongs: ['A flat tire', 'The road was bumpy', 'The car ran out of gas'] },
+            { text: 'When the volcano erupted, hot lava flowed down the mountain. The nearby village was covered in ash. Everyone had to leave their homes.',
+              q: 'Why did everyone leave?', correct: 'The volcano erupted and covered the area in ash', wrongs: ['There was a flood', 'An earthquake hit', 'A storm was coming'] },
+            { text: 'The puppy chewed through the pillow while the family was away. Feathers were everywhere when they got home. Mom said the puppy needed more chew toys.',
+              q: 'What caused the feathers to be everywhere?', correct: 'The puppy chewed through the pillow', wrongs: ['A bird got inside', 'The pillow was old', 'The wind blew them'] }
+        ];
+        const item = passageItems[this._rand(0, passageItems.length - 1)];
+        const answers = this._shuffle([item.correct, ...item.wrongs]);
+        return {
+            question: `⚡ Read this:\n"${item.text}"\n\n${item.q}`,
+            questionSpeak: `${item.text} ${item.q}`,
+            answers,
+            correctIndex: answers.indexOf(item.correct),
+            topic: 'cause-effect',
+            subtype: 'passage-cause-effect',
+            explanation: `"${item.correct}" is the right answer! In this passage, one event led to another!`,
+            explanationSpeak: `${item.correct} is correct! Good readers notice how one event causes another event to happen!`
+        };
+    },
+
+    // ---- COMPARE AND CONTRAST ----
+    _compareContrast(level) {
+        const roll = Math.random();
+
+        if (roll < 0.35) {
+            // How are these ALIKE?
+            const alikeItems = [
+                { text: 'Both cats and dogs are popular pets. They both have fur and four legs. Both animals can be trained and enjoy playing with their owners.',
+                  q: 'How are cats and dogs ALIKE?', correct: 'They both have fur and can be trained', wrongs: ['They both bark', 'They both purr', 'They both live in water'] },
+                { text: 'Apples and oranges are both fruits. They are both round and grow on trees. Both are healthy snacks that give you vitamins.',
+                  q: 'How are apples and oranges ALIKE?', correct: 'They are both round fruits that grow on trees', wrongs: ['They are the same color', 'They taste the same', 'They both have pits'] },
+                { text: 'Soccer and basketball are both team sports. Players in both sports run a lot and try to score points. Both sports have referees to enforce the rules.',
+                  q: 'How are soccer and basketball ALIKE?', correct: 'Both are team sports where you run and score', wrongs: ['Both use the same ball', 'Both have touchdowns', 'Both are played on ice'] },
+                { text: 'The sun and a campfire both give off heat and light. They both can be dangerous if you get too close. However, the sun is much, much bigger.',
+                  q: 'How are the sun and a campfire ALIKE?', correct: 'Both give off heat and light', wrongs: ['Both are the same size', 'Both are found in space', 'Both need matches'] },
+                { text: 'Frogs and toads both start life as tadpoles. They are both amphibians that can live on land and in water. Both eat insects.',
+                  q: 'How are frogs and toads ALIKE?', correct: 'Both are amphibians that start as tadpoles', wrongs: ['Both have dry skin', 'Both live only in water', 'Both can fly'] },
+                { text: 'Books and movies can both tell stories. They both have characters and a plot. Both can make you feel happy, sad, or excited.',
+                  q: 'How are books and movies ALIKE?', correct: 'Both tell stories with characters', wrongs: ['Both have pictures on every page', 'Both must be read aloud', 'Both are on screens'] }
+            ];
+            const item = alikeItems[this._rand(0, alikeItems.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `⚖️ Read this:\n"${item.text}"\n\n${item.q}`,
+                questionSpeak: `${item.text} ${item.q}`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'compare-contrast',
+                subtype: 'find-alike',
+                explanation: `"${item.correct}" is what they have in common! When we compare, we look for what is the same!`,
+                explanationSpeak: `${item.correct} is correct! Comparing means finding what things have in common!`
+            };
+        }
+
+        if (roll < 0.7) {
+            // How are these DIFFERENT?
+            const diffItems = [
+                { text: 'Fish live in water and breathe through gills. Birds live on land and in the sky, and breathe with lungs. Fish have scales, but birds have feathers.',
+                  q: 'How are fish and birds DIFFERENT?', correct: 'Fish breathe with gills, birds use lungs', wrongs: ['Both live in water', 'Both have feathers', 'Both can fly'] },
+                { text: 'Summer is hot and the days are long. You can swim and play outside. Winter is cold and the days are short. You can sled and build snowmen.',
+                  q: 'How are summer and winter DIFFERENT?', correct: 'Summer is hot with long days, winter is cold with short days', wrongs: ['Both are cold', 'Both have long days', 'Both have snow'] },
+                { text: 'Deserts are very dry and hot. They get very little rain. Rainforests are wet and warm. They get rain almost every day.',
+                  q: 'How are deserts and rainforests DIFFERENT?', correct: 'Deserts are dry but rainforests get lots of rain', wrongs: ['Both are very dry', 'Both are very cold', 'Both get lots of snow'] },
+                { text: 'Hardcover books have a stiff, thick cover that protects the pages. Paperback books have a thin, flexible cover. Hardcovers cost more but last longer.',
+                  q: 'How are hardcover and paperback books DIFFERENT?', correct: 'Hardcovers have stiff covers, paperbacks are flexible', wrongs: ['Only hardcovers have words', 'Only paperbacks have pages', 'They are exactly the same'] },
+                { text: 'Herbivores eat only plants. Carnivores eat only meat. Herbivores usually have flat teeth for grinding, while carnivores have sharp teeth for tearing.',
+                  q: 'How are herbivores and carnivores DIFFERENT?', correct: 'Herbivores eat plants, carnivores eat meat', wrongs: ['Both eat only plants', 'Both eat only meat', 'Both have sharp teeth'] },
+                { text: 'The Earth rotates once every 24 hours, giving us day and night. Mars rotates at almost the same speed. However, Mars takes about 687 days to orbit the sun, while Earth takes only 365.',
+                  q: 'How are Earth and Mars DIFFERENT?', correct: 'Earth orbits the sun faster than Mars', wrongs: ['They rotate at very different speeds', 'Earth is farther from the sun', 'Mars has longer days'] }
+            ];
+            const item = diffItems[this._rand(0, diffItems.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `⚖️ Read this:\n"${item.text}"\n\n${item.q}`,
+                questionSpeak: `${item.text} ${item.q}`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'compare-contrast',
+                subtype: 'find-different',
+                explanation: `"${item.correct}" is the difference! When we contrast, we look for what is NOT the same!`,
+                explanationSpeak: `${item.correct} is correct! Contrasting means finding how things are different from each other!`
+            };
+        }
+
+        // Signal words: "Which word signals a comparison/contrast?"
+        const signalItems = [
+            { sentence: 'Dogs are friendly, ___ cats can be more independent.', correct: 'but', type: 'contrast', wrongs: ['and', 'also', 'because'] },
+            { sentence: '___ dogs and cats make good pets.', correct: 'Both', type: 'compare', wrongs: ['Neither', 'Only', 'But'] },
+            { sentence: 'Apples are sweet. ___, oranges are also sweet.', correct: 'Similarly', type: 'compare', wrongs: ['However', 'But', 'Instead'] },
+            { sentence: 'Sharks live in the ocean. ___, bears live on land.', correct: 'However', type: 'contrast', wrongs: ['Also', 'Similarly', 'And'] },
+            { sentence: 'Frogs and toads are alike ___ many ways.', correct: 'in', type: 'compare', wrongs: ['not', 'but', 'or'] },
+            { sentence: 'Summer is warm, ___ winter is cold.', correct: 'while', type: 'contrast', wrongs: ['and also', 'similarly', 'like'] },
+            { sentence: '___ the rain, the snow also comes from clouds.', correct: 'Like', type: 'compare', wrongs: ['Unlike', 'But', 'However'] },
+            { sentence: '___ some animals hibernate, others migrate south.', correct: 'While', type: 'contrast', wrongs: ['Because', 'Since', 'Also'] }
+        ];
+        const item = signalItems[this._rand(0, signalItems.length - 1)];
+        const answers = this._shuffle([item.correct, ...item.wrongs]);
+        return {
+            question: `⚖️ Which word fits best?\n"${item.sentence}"`,
+            questionSpeak: `Which word fits best? ${item.sentence.replace('___', 'blank')}`,
+            answers,
+            correctIndex: answers.indexOf(item.correct),
+            topic: 'compare-contrast',
+            subtype: 'signal-words',
+            explanation: `"${item.correct}" is right! "${item.correct}" is a ${item.type} signal word. ${item.type === 'compare' ? 'Compare words show how things are alike.' : 'Contrast words show how things are different.'}`,
+            explanationSpeak: `${item.correct} is correct! It is a ${item.type} signal word that ${item.type === 'compare' ? 'shows how things are alike' : 'shows how things are different'}!`
+        };
+    },
+
+    // ---- TEXT FEATURES ----
+    _textFeatures(level) {
+        const roll = Math.random();
+
+        if (roll < 0.3) {
+            // "What is this text feature used for?"
+            const featureItems = [
+                { feature: 'a heading', correct: 'tells what a section is about', wrongs: ['lists the author\'s name', 'shows a picture', 'gives page numbers'] },
+                { feature: 'a caption', correct: 'explains what a photo or picture shows', wrongs: ['lists words in ABC order', 'tells you what chapter to read', 'gives the book title'] },
+                { feature: 'a glossary', correct: 'defines important words in the book', wrongs: ['lists the chapters', 'shows maps and pictures', 'tells the page numbers'] },
+                { feature: 'an index', correct: 'lists topics and their page numbers', wrongs: ['defines hard words', 'shows pictures', 'tells the story'] },
+                { feature: 'a table of contents', correct: 'lists the chapters and their page numbers', wrongs: ['defines vocabulary words', 'shows photos', 'gives the book\'s price'] },
+                { feature: 'bold print', correct: 'shows that a word is important', wrongs: ['means the word is wrong', 'means the book is fiction', 'means skip that word'] },
+                { feature: 'a diagram', correct: 'shows the parts of something with labels', wrongs: ['tells a funny story', 'lists page numbers', 'gives the author\'s name'] },
+                { feature: 'a map', correct: 'shows where places are located', wrongs: ['defines vocabulary words', 'lists chapters', 'shows how to spell words'] },
+                { feature: 'a timeline', correct: 'shows events in the order they happened', wrongs: ['defines hard words', 'lists page numbers', 'tells about the author'] },
+                { feature: 'a graph or chart', correct: 'shows data or numbers visually', wrongs: ['tells a story', 'defines words', 'lists the chapters'] }
+            ];
+            const item = featureItems[this._rand(0, featureItems.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `📑 What is ${item.feature} used for?`,
+                questionSpeak: `What is ${item.feature} used for?`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'text-features',
+                subtype: 'feature-purpose',
+                explanation: `${item.feature[0].toUpperCase() + item.feature.slice(1)} ${item.correct}! Text features help us find and understand information!`,
+                explanationSpeak: `${item.feature} ${item.correct}! Text features help us find and understand information in a book!`
+            };
+        }
+
+        if (roll < 0.6) {
+            // "Where would you look to find...?"
+            const lookupItems = [
+                { need: 'the meaning of a word you don\'t know', correct: 'the glossary', wrongs: ['the index', 'the table of contents', 'the caption'] },
+                { need: 'what page a topic is on', correct: 'the index', wrongs: ['the glossary', 'the heading', 'the caption'] },
+                { need: 'what chapters are in the book', correct: 'the table of contents', wrongs: ['the index', 'the glossary', 'a diagram'] },
+                { need: 'what a photograph shows', correct: 'the caption', wrongs: ['the glossary', 'the index', 'the heading'] },
+                { need: 'what a section of the text is about', correct: 'the heading', wrongs: ['the glossary', 'the index', 'the caption'] },
+                { need: 'the parts of a frog\'s body', correct: 'a diagram', wrongs: ['the glossary', 'the index', 'a timeline'] },
+                { need: 'which events happened first', correct: 'a timeline', wrongs: ['a diagram', 'the glossary', 'the table of contents'] },
+                { need: 'where a country is in the world', correct: 'a map', wrongs: ['the glossary', 'a graph', 'the index'] },
+                { need: 'how many students chose each color as their favorite', correct: 'a graph or chart', wrongs: ['the glossary', 'a map', 'the index'] },
+                { need: 'which words in a passage are most important', correct: 'bold print', wrongs: ['the index', 'the caption', 'the map'] }
+            ];
+            const item = lookupItems[this._rand(0, lookupItems.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `📑 Where would you look to find\n${item.need}?`,
+                questionSpeak: `Where would you look to find ${item.need}?`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'text-features',
+                subtype: 'where-to-look',
+                explanation: `You would use ${item.correct} to find ${item.need}! Knowing your text features helps you find information fast!`,
+                explanationSpeak: `You would use ${item.correct}! Good readers know which text features help them find information quickly!`
+            };
+        }
+
+        if (roll < 0.85) {
+            // Fiction vs nonfiction text features
+            const fictionOrNot = [
+                { feature: 'a glossary at the back', correct: 'Nonfiction', wrongs: ['Fiction', 'Both equally', 'Neither'] },
+                { feature: 'chapter titles like "The Dragon\'s Cave"', correct: 'Fiction', wrongs: ['Nonfiction', 'Both equally', 'Neither'] },
+                { feature: 'photographs with captions', correct: 'Nonfiction', wrongs: ['Fiction', 'Both equally', 'Neither'] },
+                { feature: 'an index listing topics and pages', correct: 'Nonfiction', wrongs: ['Fiction', 'Both equally', 'Neither'] },
+                { feature: 'illustrations of made-up characters', correct: 'Fiction', wrongs: ['Nonfiction', 'Both equally', 'Neither'] },
+                { feature: 'a diagram showing the water cycle', correct: 'Nonfiction', wrongs: ['Fiction', 'Both equally', 'Neither'] },
+                { feature: 'dialogue between talking animals', correct: 'Fiction', wrongs: ['Nonfiction', 'Both equally', 'Neither'] },
+                { feature: 'a timeline of historical events', correct: 'Nonfiction', wrongs: ['Fiction', 'Both equally', 'Neither'] },
+                { feature: 'a map showing a make-believe land', correct: 'Fiction', wrongs: ['Nonfiction', 'Both equally', 'Neither'] },
+                { feature: 'a bar graph showing real data', correct: 'Nonfiction', wrongs: ['Fiction', 'Both equally', 'Neither'] }
+            ];
+            const item = fictionOrNot[this._rand(0, fictionOrNot.length - 1)];
+            const answers = this._shuffle([item.correct, ...item.wrongs]);
+            return {
+                question: `📑 Would you most likely find this in fiction or nonfiction?\n"${item.feature}"`,
+                questionSpeak: `Would you most likely find ${item.feature} in fiction or nonfiction?`,
+                answers,
+                correctIndex: answers.indexOf(item.correct),
+                topic: 'text-features',
+                subtype: 'fiction-nonfiction',
+                explanation: `"${item.feature}" is most likely found in ${item.correct.toLowerCase()}! ${item.correct === 'Nonfiction' ? 'Nonfiction uses features to organize real facts.' : 'Fiction tells made-up stories with characters and settings.'}`,
+                explanationSpeak: `${item.feature} is usually found in ${item.correct.toLowerCase()}! ${item.correct === 'Nonfiction' ? 'Nonfiction books use features to organize facts and information.' : 'Fiction books tell made-up stories.'}`
+            };
+        }
+
+        // "What text feature is being described?"
+        const describeItems = [
+            { description: 'It is at the front of the book and lists all the chapters with page numbers.', correct: 'Table of Contents', wrongs: ['Glossary', 'Index', 'Caption'] },
+            { description: 'It is at the back of the book and lists important words with their definitions.', correct: 'Glossary', wrongs: ['Table of Contents', 'Index', 'Heading'] },
+            { description: 'It is at the back of the book and lists topics in ABC order with page numbers.', correct: 'Index', wrongs: ['Glossary', 'Table of Contents', 'Caption'] },
+            { description: 'It is a small sentence under a photo that tells what the photo shows.', correct: 'Caption', wrongs: ['Heading', 'Title', 'Bold print'] },
+            { description: 'It is a title at the top of a section that tells what that part is about.', correct: 'Heading', wrongs: ['Caption', 'Glossary', 'Index'] },
+            { description: 'It shows information using bars, lines, or circles to compare numbers.', correct: 'Graph or Chart', wrongs: ['Diagram', 'Map', 'Timeline'] },
+            { description: 'It shows the parts of something, like a plant, with lines and labels pointing to each part.', correct: 'Diagram', wrongs: ['Graph', 'Map', 'Caption'] },
+            { description: 'It shows events arranged in order from earliest to latest.', correct: 'Timeline', wrongs: ['Index', 'Table of Contents', 'Graph'] }
+        ];
+        const item = describeItems[this._rand(0, describeItems.length - 1)];
+        const answers = this._shuffle([item.correct, ...item.wrongs]);
+        return {
+            question: `📑 What text feature is this?\n"${item.description}"`,
+            questionSpeak: `What text feature is being described? ${item.description}`,
+            answers,
+            correctIndex: answers.indexOf(item.correct),
+            topic: 'text-features',
+            subtype: 'identify-feature',
+            explanation: `That is a ${item.correct}! ${item.correct}s help readers find and understand information in a book!`,
+            explanationSpeak: `That is a ${item.correct}! Knowing your text features makes you a stronger reader!`
         };
     }
 };

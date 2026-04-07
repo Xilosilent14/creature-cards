@@ -8,6 +8,9 @@
     let battleAction = null;
     let questionStartTime = 0;
     let _packReturnScreen = null;
+    let _battleStartTime = 0;
+    let _battleQuestionsTotal = 0;
+    let _battleQuestionsCorrect = 0;
 
     // === BATTLE ANIMATION HELPERS ===
     const TYPE_COLORS = {
@@ -114,10 +117,12 @@
         document.getElementById('btn-collection').addEventListener('click', () => { AudioSystem.playClick(); showScreen('collection'); });
         document.getElementById('btn-deck').addEventListener('click', () => { AudioSystem.playClick(); showScreen('deck'); });
         document.getElementById('btn-settings').addEventListener('click', () => { AudioSystem.playClick(); showScreen('settings'); });
+        document.getElementById('btn-parent').addEventListener('click', () => { AudioSystem.playClick(); showScreen('parent'); });
         document.getElementById('btn-coll-back').addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
         document.getElementById('btn-deck-back').addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
         document.getElementById('btn-map-back').addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
         document.getElementById('btn-settings-back').addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
+        document.getElementById('btn-parent-back').addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
         document.getElementById('btn-to-map').addEventListener('click', () => { AudioSystem.playClick(); AudioSystem.stopMusic(); showScreen('map'); });
         document.getElementById('btn-to-home').addEventListener('click', () => { AudioSystem.playClick(); AudioSystem.stopMusic(); showScreen('title'); });
         document.getElementById('btn-next-battle').addEventListener('click', () => { AudioSystem.playClick(); _startBattle(currentZone, currentTier); });
@@ -135,6 +140,13 @@
             } else {
                 showScreen('title');
             }
+        });
+
+        // Battle exit
+        document.getElementById('btn-battle-exit').addEventListener('click', () => {
+            AudioSystem.playClick();
+            AudioSystem.stopMusic();
+            showScreen('title');
         });
 
         // Battle actions
@@ -199,13 +211,33 @@
         if (name === 'deck') _buildDeckScreen();
         if (name === 'map') _buildMapScreen();
         if (name === 'shop') _buildShopScreen();
+        if (name === 'parent') ParentDashboard.open();
 
-        // Title screen ambient music + collection counter
+        // Title screen ambient music + collection counter + streak + achievements
         if (name === 'title') {
             AudioSystem.stopMusic();
             AudioSystem.startTitleMusic();
             const cc = document.getElementById('title-collection-counter');
-            if (cc) cc.textContent = Collection.getOwnedCount() + ' / 30 Creatures Collected';
+            if (cc) cc.textContent = Collection.getOwnedCount() + ' / 30 Creatures';
+            // Streak badge
+            const streakEl = document.getElementById('title-streak-badge');
+            if (streakEl && typeof OTBEcosystem !== 'undefined') {
+                const profile = OTBEcosystem.getProfile();
+                if (profile.dailyStreak > 0) {
+                    streakEl.textContent = '\uD83D\uDD25 ' + profile.dailyStreak + ' day streak!';
+                    streakEl.style.display = '';
+                }
+            }
+            // Achievement count
+            const achEl = document.getElementById('title-achievement-count');
+            if (achEl && typeof Achievements !== 'undefined') {
+                const count = Achievements.getEarnedCount();
+                const total = Achievements.definitions.length;
+                if (count > 0) {
+                    achEl.textContent = '\uD83C\uDFC6 ' + count + '/' + total;
+                    achEl.style.display = '';
+                }
+            }
         }
     }
 
@@ -384,6 +416,9 @@
 
         BattleEngine.startBattle(deck.slice(0, 3), oppTeam, tier);
         QuestionBridge.reset();
+        _battleStartTime = Date.now();
+        _battleQuestionsTotal = 0;
+        _battleQuestionsCorrect = 0;
         showScreen('battle');
         _updateBattleUI();
         AudioSystem.startBattleMusic();
@@ -471,8 +506,13 @@
             explBox.classList.add('visible');
         }
 
-        // Record answer in ecosystem
+        // Track per-battle stats
+        _battleQuestionsTotal++;
+        if (correct) _battleQuestionsCorrect++;
+
+        // Record answer in ecosystem and progress
         QuestionBridge.recordAnswer(correct);
+        Progress.recordQuestion(correct);
         if (typeof OTBEcosystem !== 'undefined') {
             OTBEcosystem.recordAnswer(question.topic, question.domain, correct, QuestionBridge.getLevel(), 'creature-cards');
         }
@@ -793,7 +833,15 @@
             OTBEcosystem.addCoins(coinsEarned, 'creature-cards');
         }
 
-        Progress.recordBattleResult(currentZone.id, won, xpEarned);
+        // Record time played for this battle
+        const battleDuration = Math.round((Date.now() - _battleStartTime) / 1000);
+        Progress.addPlayTime(battleDuration);
+
+        Progress.recordBattleResult(currentZone.id, won, xpEarned, {
+            turns: state.turn,
+            questionsCorrect: _battleQuestionsCorrect,
+            questionsTotal: _battleQuestionsTotal
+        });
 
         // Card reward on victory
         const rewardEl = document.getElementById('results-reward');

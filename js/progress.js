@@ -7,12 +7,16 @@ const Progress = (() => {
 
     function _default() {
         return {
-            version: 1,
+            version: 2,
             deck: [],           // array of creatureIds (max 5)
             zoneProgress: {},   // zoneId -> { tier, wins }
             totalBattles: 0,
             totalWins: 0,
             totalXP: 0,
+            totalQuestionsAnswered: 0,
+            totalQuestionsCorrect: 0,
+            totalTimePlayed: 0,     // seconds
+            battleHistory: [],      // last 50 battles: { date, zone, won, turns, questionsCorrect, questionsTotal, xpEarned }
             settings: { sfx: true, music: true, voice: true },
             tutorialDone: false,
             lastDailyPack: null, // date string
@@ -83,7 +87,22 @@ const Progress = (() => {
         return d.zoneProgress[zoneId] || { tier: 1, wins: 0 };
     }
 
-    function recordBattleResult(zoneId, won, xpEarned) {
+    // Track individual question answers
+    function recordQuestion(correct) {
+        const d = get();
+        d.totalQuestionsAnswered = (d.totalQuestionsAnswered || 0) + 1;
+        if (correct) d.totalQuestionsCorrect = (d.totalQuestionsCorrect || 0) + 1;
+        save(d);
+    }
+
+    // Add play time (call periodically during battles)
+    function addPlayTime(seconds) {
+        const d = get();
+        d.totalTimePlayed = (d.totalTimePlayed || 0) + seconds;
+        save(d);
+    }
+
+    function recordBattleResult(zoneId, won, xpEarned, battleStats) {
         const d = get();
         d.totalBattles++;
         if (won) d.totalWins++;
@@ -99,6 +118,21 @@ const Progress = (() => {
                 d.zoneProgress[zoneId].tier = Math.min(5, d.zoneProgress[zoneId].tier + 1);
             }
         }
+
+        // Record battle history entry
+        if (!d.battleHistory) d.battleHistory = [];
+        d.battleHistory.push({
+            date: new Date().toISOString(),
+            zone: zoneId,
+            won: won,
+            turns: battleStats?.turns || 0,
+            questionsCorrect: battleStats?.questionsCorrect || 0,
+            questionsTotal: battleStats?.questionsTotal || 0,
+            xpEarned: xpEarned
+        });
+        // Keep last 50
+        if (d.battleHistory.length > 50) d.battleHistory = d.battleHistory.slice(-50);
+
         save(d);
     }
 
@@ -168,6 +202,7 @@ const Progress = (() => {
     return {
         get, save, getDeck, setDeck, autoFillDeck,
         getZoneProgress, recordBattleResult,
+        recordQuestion, addPlayTime,
         canClaimDailyPack, claimDailyPack,
         getSettings, saveSetting,
         markTutorialDone, isTutorialDone,
