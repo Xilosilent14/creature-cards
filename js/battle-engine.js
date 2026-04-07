@@ -199,8 +199,9 @@ const BattleEngine = (() => {
 
         // Debuffs on opponent
         if (ability.debuff) {
-            defender.debuffs[ability.debuff] = { amount: ability.debuffAmt, turnsLeft: 2 };
-            state.log.push(`${attacker.name} used ${ability.name}! Enemy ${ability.debuff.toUpperCase()} ${ability.debuffAmt}!`);
+            const debuffVal = ability.debuffAmt || ability.amount || 0;
+            defender.debuffs[ability.debuff] = { amount: debuffVal, turnsLeft: ability.turns || 2 };
+            state.log.push(`${attacker.name} used ${ability.name}! Enemy ${ability.debuff.toUpperCase()} ${debuffVal}!`);
         }
 
         // Shield

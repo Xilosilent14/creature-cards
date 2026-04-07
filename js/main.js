@@ -876,6 +876,20 @@
         `;
         document.getElementById('results-xp').textContent = `+${xpEarned} XP${xpBoostLabel}`;
 
+        // Check achievements after battle
+        if (typeof Achievements !== 'undefined') {
+            const newAch = Achievements.checkAfterBattle(won);
+            if (newAch.length > 0) {
+                newAch.forEach(ach => {
+                    const toast = document.createElement('div');
+                    toast.className = 'achievement-toast';
+                    toast.textContent = `${ach.icon} ${ach.name}`;
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 3000);
+                });
+            }
+        }
+
         // If any creatures can evolve, show evolution sequence before results
         if (evolveQueue.length > 0) {
             _showEvolutionSequence(evolveQueue, () => showScreen('results'));
@@ -952,6 +966,11 @@
 
                     // Mark as evolved in save data
                     Collection.evolveCreature(creatureId);
+
+                    // Check evolution achievements
+                    if (typeof Achievements !== 'undefined') {
+                        Achievements.checkAfterEvolve();
+                    }
 
                     // Continue button
                     const btn = document.createElement('button');

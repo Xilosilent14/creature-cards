@@ -452,7 +452,7 @@ html, body {
 
     /* Collection */
     .collection-tabs { padding: 4px 12px; }
-    .type-tab { padding: 4px 10px; font-size: 0.7rem; min-height: 36px; }
+    .type-tab { padding: 6px 10px; font-size: 0.7rem; min-height: 44px; }
     .collection-grid { grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 8px 12px; }
     .creature-slot { padding: 6px; min-height: 80px; }
     .creature-emoji { font-size: 1.6rem; }
@@ -479,7 +479,7 @@ html, body {
     .question-area { padding: 8px 16px; }
     .question-text { font-size: 0.85rem; margin-bottom: 6px; }
     .answer-grid { gap: 6px; }
-    .answer-btn { padding: 8px; font-size: 0.8rem; min-height: 40px; }
+    .answer-btn { padding: 10px; font-size: 0.8rem; min-height: 44px; }
     .question-timer-bar { margin-bottom: 4px; }
     .battle-log { padding: 4px; font-size: 0.65rem; }
     .explanation-box { font-size: 0.7rem; padding: 4px 8px; margin-top: 4px; }
@@ -962,3 +962,23 @@ html, body {
     .pd-stat-grid { grid-template-columns: repeat(2, 1fr); }
     .pd-bar-label-wide { min-width: 80px; font-size: 0.7rem; }
 }
+
+/* ============ ACHIEVEMENT TOAST ============ */
+.achievement-toast {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d1f4e 100%);
+    border: 2px solid var(--otb-coin);
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-family: var(--otb-font-heading);
+    font-size: 1rem;
+    color: var(--otb-coin);
+    z-index: 10000;
+    animation: toast-in 0.4s ease-out, toast-out 0.4s ease-in 2.5s forwards;
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+}
+@keyframes toast-in { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+@keyframes toast-out { from { opacity: 1; } to { opacity: 0; transform: translateX(-50%) translateY(-20px); } }
