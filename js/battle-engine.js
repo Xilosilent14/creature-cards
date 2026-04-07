@@ -169,7 +169,8 @@ const BattleEngine = (() => {
 
         // Damage from stat value
         if (ability.dmgFromStat) {
-            const dmg = _getEffectiveStat(attacker, ability.dmgFromStat);
+            let dmg = _getEffectiveStat(attacker, ability.dmgFromStat);
+            if (ability.dmgStatMultiplier) dmg = Math.floor(dmg * ability.dmgStatMultiplier);
             defender.hp = Math.max(0, defender.hp - dmg);
             state.log.push(`${attacker.name} used ${ability.name}! ${dmg} dmg!`);
         }

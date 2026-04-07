@@ -33,11 +33,12 @@ const Progress = (() => {
 
     function getDeck() {
         const d = get();
-        // Return full creature objects for deck IDs
+        // Return full creature objects for deck IDs, applying evolved stats if applicable
         return d.deck.map(id => {
-            const base = CreatureData.getCreature(id);
+            const evolved = Collection.isEvolved(id);
+            const resolved = CreatureData.getCreatureResolved(id, evolved);
             const owned = Collection.get().owned[id];
-            return base ? { ...base, ...(owned || {}) } : null;
+            return resolved ? { ...resolved, ...(owned || {}), _evolved: evolved } : null;
         }).filter(Boolean);
     }
 

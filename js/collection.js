@@ -143,8 +143,37 @@ const Collection = (() => {
         return Object.keys(d.owned).length > 0;
     }
 
+    // --- Evolution functions ---
+    function getCreatureWins(creatureId) {
+        const d = get();
+        return d.owned[creatureId]?.wins || 0;
+    }
+
+    function isEvolved(creatureId) {
+        const d = get();
+        return !!d.owned[creatureId]?.evolved;
+    }
+
+    function canEvolve(creatureId) {
+        const d = get();
+        const owned = d.owned[creatureId];
+        if (!owned || owned.evolved) return false;
+        const creature = CreatureData.getCreature(creatureId);
+        if (!creature || !creature.evolvesAt) return false;
+        return owned.wins >= creature.evolvesAt;
+    }
+
+    function evolveCreature(creatureId) {
+        const d = get();
+        if (d.owned[creatureId]) {
+            d.owned[creatureId].evolved = true;
+        }
+        save(d);
+    }
+
     return {
         get, addCreature, isOwned, getOwnedList, getOwnedCount,
-        recordWin, openPack, getStardust, giveStarterPack, hasStarterPack
+        recordWin, openPack, getStardust, giveStarterPack, hasStarterPack,
+        getCreatureWins, isEvolved, canEvolve, evolveCreature
     };
 })();

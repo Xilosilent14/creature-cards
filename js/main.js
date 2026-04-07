@@ -63,6 +63,38 @@
         { id: 'shadow', name: 'Gloom Hollow',   type: 'shadow', icon: '🌙', cssClass: 'zone-shadow' }
     ];
 
+    // === CREATURE SPRITE HELPER ===
+    function getCreatureDisplay(creature, sizeClass) {
+        const cls = sizeClass || 'creature-sprite';
+        if (creature.spriteSheet && creature.spritePos !== undefined) {
+            const col = creature.spritePos % 3;
+            const row = Math.floor(creature.spritePos / 3);
+            const bgX = col * 50;  // 0%, 50%, 100%
+            const bgY = row * 100; // 0%, 100%
+            return `<div class="${cls}" style="background-image: url('assets/creatures/${creature.spriteSheet}'); background-position: ${bgX}% ${bgY}%;"></div>`;
+        }
+        const fontSize = cls === 'creature-sprite-sm' ? '1.5rem' : cls === 'creature-sprite-lg' ? '3.5rem' : '2.5rem';
+        return `<span style="font-size:${fontSize}">${creature.emoji}</span>`;
+    }
+
+    // Get display data for a creature, accounting for evolution
+    function getCreatureDisplayData(creatureOrId, evolved) {
+        let base;
+        if (typeof creatureOrId === 'string') {
+            base = CreatureData.getCreature(creatureOrId);
+        } else {
+            base = CreatureData.getCreature(creatureOrId.id) || creatureOrId;
+        }
+        if (!base) return null;
+        // For sprite display, always use the base sprite (sprites don't change on evolution)
+        return {
+            emoji: evolved ? (base.evolvedEmoji || base.emoji) : base.emoji,
+            spriteSheet: base.spriteSheet,
+            spritePos: base.spritePos,
+            name: evolved ? (base.evolvedName || base.name) : base.name
+        };
+    }
+
     function init() {
         // Initialize audio system
         AudioSystem.init();
@@ -186,12 +218,27 @@
 
         grid.innerHTML = creatures.map(c => {
             const owned = Collection.isOwned(c.id);
+            const evolved = Collection.isEvolved(c.id);
             const rarityColor = CreatureData.RARITIES[c.rarity]?.color || '#999';
+            const dd = getCreatureDisplayData(c, evolved);
+            const displayName = dd ? dd.name : c.name;
+            const wins = Collection.getCreatureWins(c.id);
+            const threshold = c.evolvesAt;
+
+            let progressText = '';
+            if (owned && !evolved && threshold) {
+                progressText = `${wins}/${threshold} wins`;
+            }
+
+            const creatureVisual = owned && dd ? getCreatureDisplay(dd, 'creature-sprite-sm') : '<span style="font-size:2rem">❓</span>';
+
             return `
-                <div class="creature-slot ${owned ? 'owned' : 'unowned'}">
-                    <div class="creature-emoji">${owned ? c.emoji : '❓'}</div>
-                    <div class="creature-name">${owned ? c.name : '???'}</div>
+                <div class="creature-slot ${owned ? 'owned' : 'unowned'} ${evolved ? 'evolved-border' : ''}" style="position:relative;">
+                    ${evolved ? '<div class="evolved-badge">EVOLVED</div>' : ''}
+                    <div class="creature-emoji">${creatureVisual}</div>
+                    <div class="creature-name">${owned ? displayName : '???'}</div>
                     <div class="creature-rarity" style="color:${rarityColor}">${owned ? c.rarity : ''}</div>
+                    ${owned && progressText ? `<div class="creature-progress">${progressText}</div>` : ''}
                 </div>
             `;
         }).join('');
@@ -208,9 +255,14 @@
         slotsEl.innerHTML = Array.from({ length: 5 }, (_, i) => {
             const c = deck[i];
             if (c) {
-                return `<div class="deck-slot filled" data-slot="${i}">
-                    <div class="creature-emoji">${c.emoji}</div>
-                    <div class="slot-name">${c.name}</div>
+                const evolved = Collection.isEvolved(c.id);
+                const dd = getCreatureDisplayData(c, evolved);
+                const displayName = dd ? dd.name : c.name;
+                const visual = dd ? getCreatureDisplay(dd, 'creature-sprite-sm') : `<span style="font-size:1.5rem">${c.emoji}</span>`;
+                return `<div class="deck-slot filled ${evolved ? 'evolved-border' : ''}" data-slot="${i}" style="position:relative;">
+                    ${evolved ? '<div class="evolved-badge">EVO</div>' : ''}
+                    <div class="creature-emoji">${visual}</div>
+                    <div class="slot-name">${displayName}</div>
                 </div>`;
             }
             return `<div class="deck-slot" data-slot="${i}">Empty</div>`;
@@ -220,12 +272,17 @@
         const owned = Collection.getOwnedList();
         gridEl.innerHTML = owned.map(c => {
             const inDeck = deckIds.includes(c.id);
+            const evolved = Collection.isEvolved(c.id);
+            const dd = getCreatureDisplayData(c, evolved);
+            const displayName = dd ? dd.name : c.name;
+            const visual = dd ? getCreatureDisplay(dd, 'creature-sprite-sm') : `<span style="font-size:2rem">${c.emoji}</span>`;
             const typeColor = CreatureData.TYPES[c.type]?.color || '#999';
             return `
-                <div class="creature-slot owned ${inDeck ? 'in-deck' : ''}" data-id="${c.id}"
-                     style="border-color: ${inDeck ? 'var(--game-accent)' : typeColor}">
-                    <div class="creature-emoji">${c.emoji}</div>
-                    <div class="creature-name">${c.name}</div>
+                <div class="creature-slot owned ${inDeck ? 'in-deck' : ''} ${evolved ? 'evolved-border' : ''}" data-id="${c.id}"
+                     style="border-color: ${inDeck ? 'var(--game-accent)' : typeColor}; position:relative;">
+                    ${evolved ? '<div class="evolved-badge">EVO</div>' : ''}
+                    <div class="creature-emoji">${visual}</div>
+                    <div class="creature-name">${displayName}</div>
                     <div class="creature-rarity" style="color:${CreatureData.RARITIES[c.rarity]?.color || '#999'}">${c.rarity}</div>
                 </div>
             `;
@@ -485,9 +542,13 @@
         const pc = state.player[state.playerActive];
         const oc = state.opponent[state.opponentActive];
 
-        // Player creature
-        document.getElementById('player-emoji').textContent = pc.emoji;
-        document.getElementById('player-name').textContent = pc.name;
+        // Player creature (use evolved display if applicable)
+        const pcEvolved = pc._evolved;
+        const pcBase = CreatureData.getCreature(pc.id);
+        const pcDD = getCreatureDisplayData(pcBase, pcEvolved);
+        const pcName = pcDD ? pcDD.name : pc.name;
+        document.getElementById('player-emoji').innerHTML = pcDD ? getCreatureDisplay(pcDD, 'creature-sprite-lg') : `<span style="font-size:4rem">${pc.emoji}</span>`;
+        document.getElementById('player-name').textContent = pcName;
         const ptd = CreatureData.TYPES[pc.type];
         const ptBadge = document.getElementById('player-type');
         ptBadge.textContent = ptd.icon + ' ' + ptd.name;
@@ -501,7 +562,9 @@
         document.getElementById('player-hp-text').textContent = `${pc.hp} / ${pc.maxHP}`;
 
         // Opponent creature
-        document.getElementById('opp-emoji').textContent = oc.emoji;
+        const ocBase = CreatureData.getCreature(oc.id);
+        const ocDD = getCreatureDisplayData(ocBase, false);
+        document.getElementById('opp-emoji').innerHTML = ocDD ? getCreatureDisplay(ocDD, 'creature-sprite-lg') : `<span style="font-size:4rem">${oc.emoji}</span>`;
         document.getElementById('opp-name').textContent = oc.name;
         const otd = CreatureData.TYPES[oc.type];
         const otBadge = document.getElementById('opp-type');
@@ -527,7 +590,6 @@
 
     function _showResults(state) {
         const won = state.winner === 'player';
-        showScreen('results');
 
         document.getElementById('results-title').textContent = won ? 'Victory!' : 'Defeat...';
         document.getElementById('results-title').style.color = won ? 'var(--otb-coin)' : 'var(--otb-danger)';
@@ -547,16 +609,24 @@
 
         // Card reward on victory
         const rewardEl = document.getElementById('results-reward');
+        const evolveQueue = [];
         if (won) {
             const rewardCards = Collection.openPack('victory');
             const rewardCreature = CreatureData.getCreature(rewardCards[0]);
             if (rewardCreature) {
                 rewardEl.style.display = 'block';
-                rewardEl.textContent = rewardCreature.emoji;
+                rewardEl.innerHTML = getCreatureDisplay(rewardCreature, 'creature-sprite-lg');
                 rewardEl.title = rewardCreature.name;
             }
-            // Record wins for player's creatures
-            state.player.forEach(c => { if (c.hp > 0) Collection.recordWin(c.id); });
+            // Record wins for player's surviving creatures, check for evolution
+            state.player.forEach(c => {
+                if (c.hp > 0) {
+                    Collection.recordWin(c.id);
+                    if (Collection.canEvolve(c.id)) {
+                        evolveQueue.push(c.id);
+                    }
+                }
+            });
         } else {
             rewardEl.style.display = 'none';
         }
@@ -567,6 +637,101 @@
             ${won ? '<div style="color:var(--otb-success);">New card earned!</div>' : '<div style="color:var(--otb-text-muted);">Try using type advantages!</div>'}
         `;
         document.getElementById('results-xp').textContent = `+${xpEarned} XP`;
+
+        // If any creatures can evolve, show evolution sequence before results
+        if (evolveQueue.length > 0) {
+            _showEvolutionSequence(evolveQueue, () => showScreen('results'));
+        } else {
+            showScreen('results');
+        }
+    }
+
+    // === EVOLUTION SEQUENCE ===
+    function _showEvolutionSequence(creatureIds, onComplete) {
+        let idx = 0;
+
+        function showNext() {
+            if (idx >= creatureIds.length) {
+                onComplete();
+                return;
+            }
+            const creatureId = creatureIds[idx];
+            const base = CreatureData.getCreature(creatureId);
+            if (!base || !base.evolvedName) { idx++; showNext(); return; }
+
+            // Build evolution overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'evolution-overlay';
+            const baseDisplay = getCreatureDisplay(base, 'creature-sprite-lg');
+            overlay.innerHTML = `
+                <div class="evolution-label">EVOLUTION!</div>
+                <div class="evolution-creature" id="evo-emoji">${baseDisplay}</div>
+                <div class="evolution-text" id="evo-text">${base.name} is evolving...</div>
+                <div class="evolution-stats" id="evo-stats"></div>
+            `;
+            document.body.appendChild(overlay);
+
+            AudioSystem.playAbility();
+
+            // Phase 1: pulse the base emoji (1.5s)
+            setTimeout(() => {
+                const emojiEl = document.getElementById('evo-emoji');
+                const textEl = document.getElementById('evo-text');
+                const statsEl = document.getElementById('evo-stats');
+
+                // Phase 2: transform to evolved (flash white)
+                emojiEl.style.filter = 'brightness(5)';
+                emojiEl.style.transform = 'scale(1.8)';
+
+                setTimeout(() => {
+                    // Show evolved form
+                    const evolvedDD = getCreatureDisplayData(base, true);
+                    emojiEl.innerHTML = evolvedDD ? getCreatureDisplay(evolvedDD, 'creature-sprite-lg') : `<span style="font-size:5rem">${base.evolvedEmoji || base.emoji}</span>`;
+                    emojiEl.style.filter = 'brightness(1)';
+                    emojiEl.style.transform = 'scale(1.2)';
+                    emojiEl.classList.add('evolution-complete');
+
+                    textEl.textContent = `${base.name} evolved into ${base.evolvedName}!`;
+                    AudioSystem.playVictory();
+
+                    // Show stat changes
+                    if (base.evolvedStats) {
+                        const statNames = ['pwr', 'grd', 'spd', 'mag'];
+                        const diffs = statNames.map(s => {
+                            const diff = (base.evolvedStats[s] || 0) - (base.stats[s] || 0);
+                            return diff > 0 ? `+${diff} ${s.toUpperCase()}` : '';
+                        }).filter(Boolean);
+                        statsEl.textContent = diffs.join('  ');
+                    }
+
+                    // Show evolved ability
+                    if (base.evolvedAbility) {
+                        const abilityEl = document.createElement('div');
+                        abilityEl.className = 'evolution-ability';
+                        abilityEl.textContent = `New Ability: ${base.evolvedAbility.name} - ${base.evolvedAbility.desc}`;
+                        overlay.appendChild(abilityEl);
+                    }
+
+                    // Mark as evolved in save data
+                    Collection.evolveCreature(creatureId);
+
+                    // Continue button
+                    const btn = document.createElement('button');
+                    btn.className = 'otb-btn otb-btn-accent';
+                    btn.textContent = 'Awesome!';
+                    btn.style.marginTop = '16px';
+                    btn.addEventListener('click', () => {
+                        AudioSystem.playClick();
+                        overlay.remove();
+                        idx++;
+                        showNext();
+                    });
+                    overlay.appendChild(btn);
+                }, 400);
+            }, 1500);
+        }
+
+        showNext();
     }
 
     // === PACK OPENING ===
@@ -579,9 +744,10 @@
         container.innerHTML = cardIds.map((id, i) => {
             const c = CreatureData.getCreature(id);
             const rarityColor = CreatureData.RARITIES[c?.rarity]?.color || '#999';
+            const creatureVisual = c ? getCreatureDisplay(c, 'creature-sprite') : '<span style="font-size:2.5rem">❓</span>';
             return `<div class="pack-card" data-idx="${i}" style="border-color:${rarityColor};">
-                <span style="display:none;">${c?.emoji || '❓'}</span>
-                <span>🎴</span>
+                <div style="display:none;" class="pack-card-front">${creatureVisual}</div>
+                <span class="pack-card-back">🎴</span>
             </div>`;
         }).join('');
 
@@ -591,9 +757,10 @@
                 if (card.classList.contains('revealed')) return;
                 card.classList.add('revealed');
                 AudioSystem.playCardReveal();
-                const spans = card.querySelectorAll('span');
-                spans[0].style.display = 'block';  // show emoji
-                spans[1].style.display = 'none';    // hide back
+                const front = card.querySelector('.pack-card-front');
+                const back = card.querySelector('.pack-card-back');
+                if (front) front.style.display = 'flex';
+                if (back) back.style.display = 'none';
                 card.style.transform = 'scale(1.1)';
                 setTimeout(() => { card.style.transform = 'scale(1)'; }, 200);
             });

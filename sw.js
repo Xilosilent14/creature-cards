@@ -1,5 +1,5 @@
 // Creature Cards — Service Worker
-const CACHE_NAME = 'creature-cards-v2';
+const CACHE_NAME = 'creature-cards-v4';
 const ASSETS = [
     './', './index.html', './css/style.css',
     './css/shared/design-system.css',
@@ -11,7 +11,12 @@ const ASSETS = [
     './js/progress.js', './js/audio.js', './js/main.js',
     './js/math-data.js', './js/reading-data.js',
     './js/ecosystem.js', './js/otb-config.js',
-    './manifest.json'
+    './manifest.json',
+    './assets/creatures/ember-type.png',
+    './assets/creatures/tidal-type.png',
+    './assets/creatures/terra-type.png',
+    './assets/creatures/spark-type.png',
+    './assets/creatures/shadow-type.png'
 ];
 
 self.addEventListener('install', e => {
