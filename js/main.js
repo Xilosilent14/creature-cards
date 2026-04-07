@@ -200,10 +200,12 @@
         if (name === 'map') _buildMapScreen();
         if (name === 'shop') _buildShopScreen();
 
-        // Title screen ambient music
+        // Title screen ambient music + collection counter
         if (name === 'title') {
             AudioSystem.stopMusic();
             AudioSystem.startTitleMusic();
+            const cc = document.getElementById('title-collection-counter');
+            if (cc) cc.textContent = Collection.getOwnedCount() + ' / 30 Creatures Collected';
         }
     }
 

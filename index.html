@@ -23,20 +23,53 @@
 
     <!-- Title Screen -->
     <div id="screen-title" class="screen">
+        <!-- Floating type orbs -->
+        <div class="title-orb title-orb-ember"></div>
+        <div class="title-orb title-orb-tidal"></div>
+        <div class="title-orb title-orb-terra"></div>
+        <div class="title-orb title-orb-spark"></div>
+        <div class="title-orb title-orb-shadow"></div>
+        <!-- Sparkle particles -->
+        <div class="title-sparkle" style="top:18%;left:22%;animation-delay:0s;"></div>
+        <div class="title-sparkle" style="top:30%;left:70%;animation-delay:0.8s;"></div>
+        <div class="title-sparkle" style="top:55%;left:15%;animation-delay:1.6s;"></div>
+        <div class="title-sparkle" style="top:25%;left:80%;animation-delay:2.4s;"></div>
+        <div class="title-sparkle" style="top:60%;left:75%;animation-delay:0.4s;"></div>
+        <div class="title-sparkle" style="top:40%;left:30%;animation-delay:1.2s;"></div>
+        <div class="title-sparkle" style="top:15%;left:55%;animation-delay:2s;"></div>
+        <div class="title-sparkle" style="top:70%;left:45%;animation-delay:0.6s;"></div>
+
         <div class="title-content">
             <div class="otb-badge" style="position:absolute;top:10px;left:50%;transform:translateX(-50%);">Blake Boys Gaming</div>
+
+            <!-- Card fan behind title -->
+            <div class="title-card-fan">
+                <div class="title-card title-card-ember" style="--rot:-28deg;--tx:-60px;--ty:8px;"><div class="title-card-inner">&#9830;</div></div>
+                <div class="title-card title-card-tidal" style="--rot:-14deg;--tx:-30px;--ty:2px;"><div class="title-card-inner">&#9827;</div></div>
+                <div class="title-card title-card-terra" style="--rot:0deg;--tx:0px;--ty:0px;"><div class="title-card-inner">&#9733;</div></div>
+                <div class="title-card title-card-spark" style="--rot:14deg;--tx:30px;--ty:2px;"><div class="title-card-inner">&#9829;</div></div>
+                <div class="title-card title-card-shadow" style="--rot:28deg;--tx:60px;--ty:8px;"><div class="title-card-inner">&#9824;</div></div>
+                <!-- Energy lines between cards -->
+                <div class="title-energy title-energy-1"></div>
+                <div class="title-energy title-energy-2"></div>
+                <div class="title-energy title-energy-3"></div>
+            </div>
+
             <h1 class="game-title">CREATURE<br><span class="title-accent">CARDS</span></h1>
-            <button class="otb-btn otb-btn-primary otb-btn-large" id="btn-play" aria-label="Play Game">🃏 Play</button>
+
+            <div class="title-collection-counter" id="title-collection-counter">0 / 30 Creatures Collected</div>
+
+            <button class="title-play-btn" id="btn-play" aria-label="Play Game">&#9876; PLAY</button>
             <div class="title-row">
-                <button class="otb-btn otb-btn-secondary" id="btn-collection" aria-label="View Collection">Collection</button>
-                <button class="otb-btn otb-btn-secondary" id="btn-deck" aria-label="Build Deck">Deck</button>
+                <button class="otb-btn otb-btn-secondary" id="btn-collection" aria-label="View Collection">&#128218; Collection</button>
+                <button class="otb-btn otb-btn-secondary" id="btn-deck" aria-label="Build Deck">&#9876; Deck</button>
             </div>
             <div class="title-row">
-                <button class="otb-btn otb-btn-secondary" id="btn-shop" aria-label="Stardust Shop">✨ Shop</button>
+                <button class="otb-btn otb-btn-secondary" id="btn-shop" aria-label="Stardust Shop">&#10024; Shop</button>
             </div>
             <div class="title-row">
-                <button class="otb-btn otb-btn-small" id="btn-settings" aria-label="Settings">Settings</button>
-                <a id="hub-link" href="#" class="otb-btn otb-btn-small" style="opacity:0.5;text-decoration:none;" aria-label="Return to Hub">🎮 Hub</a>
+                <button class="otb-btn otb-btn-small" id="btn-settings" aria-label="Settings">&#9881; Settings</button>
+                <a id="hub-link" href="#" class="otb-btn otb-btn-small" style="opacity:0.5;text-decoration:none;" aria-label="Return to Hub">&#127918; Hub</a>
             </div>
         </div>
     </div>
