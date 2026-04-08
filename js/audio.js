@@ -293,7 +293,7 @@ const AudioSystem = (() => {
     }
 
     function playTypedAttack(type) {
-        const map = { fire: playFireAttack, water: playWaterAttack, grass: playGrassAttack, light: playLightAttack, dark: playDarkAttack };
+        const map = { ember: playFireAttack, tidal: playWaterAttack, terra: playGrassAttack, spark: playLightAttack, shadow: playDarkAttack };
         (map[type] || playAttack)();
     }
 
