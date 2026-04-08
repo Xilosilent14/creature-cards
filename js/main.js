@@ -116,6 +116,8 @@
         document.getElementById('btn-play').addEventListener('click', () => { AudioSystem.playClick(); showScreen('map'); });
         document.getElementById('btn-collection').addEventListener('click', () => { AudioSystem.playClick(); showScreen('collection'); });
         document.getElementById('btn-deck').addEventListener('click', () => { AudioSystem.playClick(); showScreen('deck'); });
+        document.getElementById('btn-achievements').addEventListener('click', () => { AudioSystem.playClick(); showScreen('achievements'); });
+        document.getElementById('btn-achievements-back').addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
         document.getElementById('btn-settings').addEventListener('click', () => { AudioSystem.playClick(); showScreen('settings'); });
         document.getElementById('btn-parent').addEventListener('click', () => { AudioSystem.playClick(); showScreen('parent'); });
         document.getElementById('btn-coll-back').addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
@@ -211,6 +213,7 @@
         if (name === 'deck') _buildDeckScreen();
         if (name === 'map') _buildMapScreen();
         if (name === 'shop') _buildShopScreen();
+        if (name === 'achievements') _buildAchievementsScreen();
         if (name === 'parent') ParentDashboard.open();
 
         // Title screen ambient music + collection counter + streak + achievements
@@ -546,7 +549,7 @@
                         spawnAttackParticles('#opp-creature', color, 12);
                     }, 200);
                 } else {
-                    AudioSystem.playAttack();
+                    AudioSystem.playTypedAttack(playerType);
                     // Player lunge toward opponent
                     playBattleAnimation('#player-emoji', 'attack-anim', 500);
                     setTimeout(() => {
@@ -1022,6 +1025,27 @@
                 setTimeout(() => { card.style.transform = 'scale(1)'; }, 200);
             });
         });
+    }
+
+    function _buildAchievementsScreen() {
+        const grid = document.getElementById('achievements-grid');
+        if (!grid) return;
+        const all = Achievements.getAll();
+        const earned = all.filter(a => a.earned).length;
+        grid.innerHTML = `
+            <div class="achievements-header">
+                <span class="achievements-count">${earned} / ${all.length} Earned</span>
+            </div>
+            <div class="achievements-cards">
+                ${all.map(a => `
+                    <div class="achievement-card ${a.earned ? 'earned' : 'locked'}">
+                        <div class="achievement-icon">${a.earned ? a.icon : '🔒'}</div>
+                        <div class="achievement-name">${a.earned ? a.name : '???'}</div>
+                        <div class="achievement-desc">${a.desc}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
     }
 
     document.addEventListener('DOMContentLoaded', init);

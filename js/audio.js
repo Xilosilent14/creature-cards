@@ -250,6 +250,53 @@ const AudioSystem = (() => {
         _osc('sine', 160, sfxGain, t + 0.3, 0.2, 60);
     }
 
+    // Per-type attack sounds
+    function playFireAttack() {
+        if (!sfxEnabled || !_ensureCtx()) return;
+        const t = ctx.currentTime;
+        _noise(sfxGain, t, 0.15, 0.3);
+        _osc('sawtooth', 400, sfxGain, t, 0.12, 100);
+        _osc('sawtooth', 600, sfxGain, t + 0.05, 0.1, 200);
+        _osc('sawtooth', 800, sfxGain, t + 0.1, 0.08, 300);
+    }
+
+    function playWaterAttack() {
+        if (!sfxEnabled || !_ensureCtx()) return;
+        const t = ctx.currentTime;
+        _osc('sine', 300, sfxGain, t, 0.25, 600);
+        _osc('sine', 500, sfxGain, t + 0.1, 0.2, 300);
+        _noise(sfxGain, t + 0.05, 0.2, 0.15);
+    }
+
+    function playGrassAttack() {
+        if (!sfxEnabled || !_ensureCtx()) return;
+        const t = ctx.currentTime;
+        _osc('triangle', 800, sfxGain, t, 0.08, 400);
+        _osc('triangle', 1000, sfxGain, t + 0.08, 0.08, 500);
+        _osc('triangle', 1200, sfxGain, t + 0.16, 0.1, 600);
+    }
+
+    function playLightAttack() {
+        if (!sfxEnabled || !_ensureCtx()) return;
+        const t = ctx.currentTime;
+        _note(1200, t, 0.1);
+        _note(1600, t + 0.06, 0.1);
+        _note(2000, t + 0.12, 0.15);
+    }
+
+    function playDarkAttack() {
+        if (!sfxEnabled || !_ensureCtx()) return;
+        const t = ctx.currentTime;
+        _osc('sawtooth', 150, sfxGain, t, 0.2, 50);
+        _noise(sfxGain, t, 0.2, 0.25);
+        _osc('sine', 100, sfxGain, t + 0.1, 0.15, 50);
+    }
+
+    function playTypedAttack(type) {
+        const map = { fire: playFireAttack, water: playWaterAttack, grass: playGrassAttack, light: playLightAttack, dark: playDarkAttack };
+        (map[type] || playAttack)();
+    }
+
     function playPurchase() {
         if (!sfxEnabled || !_ensureCtx()) return;
         const t = ctx.currentTime;
@@ -472,6 +519,7 @@ const AudioSystem = (() => {
         playClick, playAbility,
         playCombo, playDailyPack,
         playHeal, playTypeAdvantage,
+        playFireAttack, playWaterAttack, playGrassAttack, playLightAttack, playDarkAttack, playTypedAttack,
         playPurchase, playSwap,
         startBattleMusic, startTitleMusic, stopMusic,
         setSFX, setMusic
