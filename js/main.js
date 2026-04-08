@@ -399,7 +399,12 @@
         const deck = Progress.getDeck();
         if (deck.length === 0) {
             Progress.autoFillDeck();
-            return _startBattle(zone, tier);
+            const retryDeck = Progress.getDeck();
+            if (retryDeck.length === 0) {
+                // No creatures at all, can't battle
+                showScreen('title');
+                return;
+            }
         }
 
         // Generate opponent team based on zone type and tier
