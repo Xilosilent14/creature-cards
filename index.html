@@ -100,7 +100,7 @@
         <div class="screen-header">
             <button class="otb-btn otb-btn-small" id="btn-deck-back" aria-label="Back">Back</button>
             <h2>Your Team</h2>
-            <button class="otb-btn otb-btn-small" id="btn-auto-fill" aria-label="Auto Fill Deck">Auto Fill</button>
+            <button class="otb-btn otb-btn-small" id="btn-auto-fill" aria-label="Auto-Build Deck">✨ Auto-Build</button>
         </div>
         <div class="deck-slots" id="deck-slots"></div>
         <div class="collection-grid" id="deck-grid" style="flex:1;overflow-y:auto;padding:12px;"></div>
@@ -125,23 +125,26 @@
                     <div class="battle-creature-emoji" id="player-emoji"></div>
                     <div class="battle-creature-name" id="player-name"></div>
                     <div class="battle-type-badge" id="player-type"></div>
-                    <div class="battle-hp-bar"><div class="battle-hp-fill" id="player-hp"></div></div>
                     <div class="battle-hp-text" id="player-hp-text"></div>
+                    <div class="battle-hp-bar"><div class="battle-hp-fill" id="player-hp"></div></div>
                 </div>
                 <div class="battle-vs">VS</div>
                 <div class="battle-creature" id="opp-creature">
                     <div class="battle-creature-emoji" id="opp-emoji"></div>
                     <div class="battle-creature-name" id="opp-name"></div>
                     <div class="battle-type-badge" id="opp-type"></div>
-                    <div class="battle-hp-bar"><div class="battle-hp-fill" id="opp-hp"></div></div>
                     <div class="battle-hp-text" id="opp-hp-text"></div>
+                    <div class="battle-hp-bar"><div class="battle-hp-fill" id="opp-hp"></div></div>
                 </div>
             </div>
             <div class="battle-log" id="battle-log" aria-live="polite"></div>
         </div>
         <div class="question-area" id="question-area" style="display:none;">
             <div class="question-timer-bar" id="question-timer-bar"><div class="question-timer-fill" id="question-timer-fill"></div></div>
-            <div class="question-text" id="q-text" aria-live="polite"></div>
+            <div class="question-header-row">
+                <div class="question-text" id="q-text" aria-live="polite"></div>
+                <button class="voice-replay-btn" id="btn-voice-replay" aria-label="Hear question again" type="button">🔊 Hear again</button>
+            </div>
             <div class="answer-grid" id="answer-grid"></div>
             <div class="speed-bonus" id="speed-bonus" aria-live="polite">Speed Bonus!</div>
             <div class="explanation-box" id="explanation-box" aria-live="polite"></div>

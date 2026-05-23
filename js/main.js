@@ -12,6 +12,26 @@
     let _battleQuestionsTotal = 0;
     let _battleQuestionsCorrect = 0;
     let battlePaused = false;
+    // Per-battle flag for first "Answer this to attack!" narration cue
+    let _attackCueShownThisBattle = false;
+    // Last spoken question text, used by the "Hear again" replay button
+    let _lastQuestionSpoken = '';
+    // Rotating encouragement phrases for wrong answers (gentle, never punitive)
+    const ENCOURAGEMENT_PHRASES = [
+        'Almost! Try the next one.',
+        'Good try! You can do it.',
+        "That's okay, let's keep going.",
+        "Nice try! Don't give up.",
+        'So close! Try again next time.',
+        'Keep going, you got this!'
+    ];
+    let _encouragementIdx = 0;
+    function _sayEncouragement() {
+        const phrase = ENCOURAGEMENT_PHRASES[_encouragementIdx % ENCOURAGEMENT_PHRASES.length];
+        _encouragementIdx++;
+        // Slight delay so it doesn't collide with the wrong-answer chime
+        setTimeout(() => _speak(phrase), 350);
+    }
 
     // === TTS for question reading (kids can't read yet) ===
     let _ttsVoice = null;
@@ -164,15 +184,28 @@
     ];
 
     // === CREATURE SPRITE HELPER ===
+    // Use a data attribute for fallback emoji; a delegated error listener (below)
+    // swaps the <img> for the emoji span. Avoids inline event handlers (CSP/SES).
     function getCreatureDisplay(creature, sizeClass) {
         const cls = sizeClass || 'creature-sprite';
-        // Use individual creature PNG by ID
         if (creature.id) {
-            return `<img class="${cls}" src="assets/creatures/${creature.id}.png" alt="${creature.name || creature.id}" onerror="this.outerHTML='<span style=\\'font-size:3rem\\'>${creature.emoji || '?'}</span>'">`;
+            const safeEmoji = String(creature.emoji || '?').replace(/"/g, '&quot;');
+            return `<img class="${cls}" src="assets/creatures/${creature.id}.png" alt="${creature.name || creature.id}" data-fallback-emoji="${safeEmoji}">`;
         }
         const fontSize = cls === 'creature-sprite-sm' ? '1.5rem' : cls === 'creature-sprite-lg' ? '3.5rem' : '2.5rem';
         return `<span style="font-size:${fontSize}">${creature.emoji}</span>`;
     }
+    // Delegated image-error handler: swap broken creature image for emoji fallback.
+    document.addEventListener('error', (e) => {
+        const t = e.target;
+        if (!(t instanceof HTMLImageElement)) return;
+        if (!t.hasAttribute('data-fallback-emoji')) return;
+        const emoji = t.getAttribute('data-fallback-emoji') || '?';
+        const span = document.createElement('span');
+        span.style.fontSize = '3rem';
+        span.textContent = emoji;
+        if (t.parentNode) t.parentNode.replaceChild(span, t);
+    }, true);
 
     // Get display data for a creature, accounting for evolution
     function getCreatureDisplayData(creatureOrId, evolved) {
@@ -269,6 +302,19 @@
                 _pauseBattle();
             }
         });
+
+        // Voice replay button: re-narrate the current question
+        const voiceReplayBtn = document.getElementById('btn-voice-replay');
+        if (voiceReplayBtn) {
+            voiceReplayBtn.addEventListener('click', () => {
+                AudioSystem.playClick();
+                if (!_lastQuestionSpoken) return;
+                voiceReplayBtn.classList.add('speaking');
+                _speak(_lastQuestionSpoken);
+                // Drop the speaking glow after a short window (TTS callbacks vary)
+                setTimeout(() => voiceReplayBtn.classList.remove('speaking'), 1800);
+            });
+        }
 
         // Battle actions
         document.getElementById('btn-attack').addEventListener('click', () => { AudioSystem.playClick(); _onBattleAction('attack'); });
@@ -560,6 +606,8 @@
         _battleStartTime = Date.now();
         _battleQuestionsTotal = 0;
         _battleQuestionsCorrect = 0;
+        _attackCueShownThisBattle = false;
+        _lastQuestionSpoken = '';
         showScreen('battle');
         _updateBattleUI();
         AudioSystem.startBattleMusic();
@@ -608,8 +656,19 @@
         document.getElementById('battle-actions').style.display = 'none';
         questionStartTime = Date.now();
 
-        // Auto-read question aloud for young kids
-        setTimeout(() => _speak(q.questionSpeak || q.question), 200);
+        // Remember the question text for the "Hear again" replay button
+        _lastQuestionSpoken = q.questionSpeak || q.question;
+
+        // First-time-per-battle: explain that questions power attacks.
+        // Then auto-read the question. On subsequent questions, just read.
+        if (!_attackCueShownThisBattle) {
+            _attackCueShownThisBattle = true;
+            _speak('Answer this to attack!');
+            // Wait a beat so the cue and the question don't overlap
+            setTimeout(() => _speak(_lastQuestionSpoken), 1400);
+        } else {
+            setTimeout(() => _speak(_lastQuestionSpoken), 200);
+        }
     }
 
     function _onAnswer(idx, question) {
@@ -629,11 +688,25 @@
             document.getElementById('speed-bonus').classList.add('visible');
         }
 
-        // Audio + visual feedback
+        // === SUB-100MS CORRECT-ANSWER CONFIRMATION ===
+        // Fire chime + screen shake on enemy + damage-number preview
+        // IMMEDIATELY (AudioContext, no setTimeout) so the kid gets feedback
+        // before the 800ms pacing delay below.
         if (correct) {
             AudioSystem.playCorrect();
+            // Instant enemy shake (synchronous DOM class add)
+            const oppCreatureEl = document.getElementById('opp-creature');
+            if (oppCreatureEl) {
+                oppCreatureEl.classList.remove('shake-instant');
+                void oppCreatureEl.offsetWidth; // reflow to restart animation
+                oppCreatureEl.classList.add('shake-instant');
+            }
+            // Instant "HIT!" damage-float preview (actual numeric damage comes after engine resolves)
+            showDamageNumber('#opp-creature', 'HIT!', 'crit');
         } else {
             AudioSystem.playWrong();
+            // Gentle encouragement TTS, slight delay to avoid colliding with the chime
+            _sayEncouragement();
         }
 
         const btns = document.querySelectorAll('#answer-grid .answer-btn');
@@ -661,8 +734,9 @@
             OTBEcosystem.recordAnswer(question.topic, question.domain, correct, QuestionBridge.getLevel(), 'creature-cards');
         }
 
-        // Execute battle turn after brief delay (longer if showing explanation)
-        const delay = (!correct && question.explanation) ? 2500 : 800;
+        // Execute battle turn after brief pacing delay (0.5s if correct,
+        // longer if showing explanation on wrong)
+        const delay = (!correct && question.explanation) ? 2500 : 500;
         setTimeout(() => {
             const prevState = BattleEngine.getState();
             const prevOppHP = prevState.opponent[prevState.opponentActive].hp;
@@ -698,9 +772,24 @@
                     }, 200);
                 }
 
-                // Type advantage flash
+                // Type advantage: flash + attacker glow + spoken cue
                 if (typeAdv > 1) {
                     playBattleAnimation('.battle-area', 'type-advantage-anim', 600);
+                    // Glow on attacker tinted to its own type
+                    const playerEl = document.getElementById('player-creature');
+                    if (playerEl) {
+                        playerEl.style.setProperty('--type-adv-color', color);
+                        playerEl.classList.remove('type-advantage-glow');
+                        void playerEl.offsetWidth;
+                        playerEl.classList.add('type-advantage-glow');
+                        setTimeout(() => playerEl.classList.remove('type-advantage-glow'), 900);
+                    }
+                    // Narrate: "Your fire beats their earth!" (use type names from CreatureData)
+                    try {
+                        const pTypeName = (CreatureData.TYPES[playerType]?.name || playerType).toLowerCase();
+                        const oTypeName = (CreatureData.TYPES[oppType]?.name || oppType).toLowerCase();
+                        _speak('Your ' + pTypeName + ' beats their ' + oTypeName + '!');
+                    } catch (_) {}
                 }
             } else {
                 AudioSystem.playWeakAttack();
@@ -803,7 +892,8 @@
         const pHP = document.getElementById('player-hp');
         const pPct = (pc.hp / pc.maxHP) * 100;
         pHP.style.width = pPct + '%';
-        pHP.className = 'battle-hp-fill' + (pPct < 30 ? ' low' : '');
+        // Color tiers: green >50%, yellow 25-50%, red <25%
+        pHP.className = 'battle-hp-fill' + (pPct < 25 ? ' low' : (pPct < 50 ? ' mid' : ''));
         document.getElementById('player-hp-text').textContent = `${pc.hp} / ${pc.maxHP}`;
 
         // Opponent creature
@@ -820,7 +910,7 @@
         const oHP = document.getElementById('opp-hp');
         const oPct = (oc.hp / oc.maxHP) * 100;
         oHP.style.width = oPct + '%';
-        oHP.className = 'battle-hp-fill' + (oPct < 30 ? ' low' : '');
+        oHP.className = 'battle-hp-fill' + (oPct < 25 ? ' low' : (oPct < 50 ? ' mid' : ''));
         document.getElementById('opp-hp-text').textContent = `${oc.hp} / ${oc.maxHP}`;
 
         // Battle log
@@ -1145,14 +1235,16 @@
         container.innerHTML = cardIds.map((id, i) => {
             const c = CreatureData.getCreature(id);
             const rarityColor = CreatureData.RARITIES[c?.rarity]?.color || '#999';
+            const rarity = c?.rarity || 'common';
             const creatureVisual = c ? getCreatureDisplay(c, 'creature-sprite') : '<span style="font-size:2.5rem">❓</span>';
-            return `<div class="pack-card" data-idx="${i}" style="border-color:${rarityColor};">
+            // data-rarity used on reveal to apply the celebration class
+            return `<div class="pack-card" data-idx="${i}" data-rarity="${rarity}" style="border-color:${rarityColor};">
                 <div style="display:none;" class="pack-card-front">${creatureVisual}</div>
                 <span class="pack-card-back">🎴</span>
             </div>`;
         }).join('');
 
-        // Tap to reveal
+        // Tap to reveal — fires rarity-tier celebration
         container.querySelectorAll('.pack-card').forEach(card => {
             card.addEventListener('click', () => {
                 if (card.classList.contains('revealed')) return;
@@ -1164,8 +1256,57 @@
                 if (back) back.style.display = 'none';
                 card.style.transform = 'scale(1.1)';
                 setTimeout(() => { card.style.transform = 'scale(1)'; }, 200);
+
+                const rarity = card.getAttribute('data-rarity') || 'common';
+                _celebrateRarity(card, rarity);
             });
         });
+    }
+
+    // Rarity celebration: visual + audio per tier
+    // common: nothing; uncommon: small sparkle; rare: bigger sparkle + chime;
+    // epic: golden aura + fanfare; legendary: rainbow swirl + bigger fanfare.
+    function _celebrateRarity(cardEl, rarity) {
+        if (rarity === 'common') return;
+
+        // Apply the matching CSS aura class
+        cardEl.classList.add('rarity-' + rarity);
+
+        // Sparkle particles for rare+, more for epic/legendary
+        const particleCount = { uncommon: 4, rare: 8, epic: 14, legendary: 22 }[rarity] || 0;
+        const particleColors = {
+            uncommon: '#4CAF50',
+            rare: '#2196F3',
+            epic: '#FFD700',
+            legendary: '#fff'
+        };
+        const color = particleColors[rarity] || '#fff';
+        for (let i = 0; i < particleCount; i++) {
+            const p = document.createElement('div');
+            p.className = 'rarity-particle';
+            p.style.left = '50%';
+            p.style.top = '50%';
+            const angle = (i / particleCount) * Math.PI * 2;
+            const dist = 40 + Math.random() * 40;
+            p.style.setProperty('--px', Math.cos(angle) * dist + 'px');
+            p.style.setProperty('--py', Math.sin(angle) * dist + 'px');
+            p.style.setProperty('--p-color', color);
+            cardEl.appendChild(p);
+            setTimeout(() => p.remove(), 1300);
+        }
+
+        // Audio: chime for rare, fanfare for epic, bigger fanfare + voice for legendary
+        if (rarity === 'rare') {
+            if (AudioSystem.playCombo) AudioSystem.playCombo();
+            else if (AudioSystem.playCardReveal) AudioSystem.playCardReveal();
+        } else if (rarity === 'epic') {
+            if (AudioSystem.playTypeAdvantage) AudioSystem.playTypeAdvantage();
+            if (AudioSystem.playVictory) setTimeout(() => AudioSystem.playVictory(), 150);
+        } else if (rarity === 'legendary') {
+            if (AudioSystem.playVictory) AudioSystem.playVictory();
+            if (AudioSystem.playTypeAdvantage) setTimeout(() => AudioSystem.playTypeAdvantage(), 250);
+            setTimeout(() => _speak('Legendary!'), 200);
+        }
     }
 
     function _buildAchievementsScreen() {

@@ -347,10 +347,45 @@ html, body {
 .battle-creature-emoji { font-size: 4rem; animation: creature-idle 2s ease-in-out infinite; }
 @keyframes creature-idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 .battle-creature-name { font-family: var(--otb-font-heading); font-size: 0.85rem; color: #fff; margin-top: 4px; }
-.battle-hp-bar { width: 120px; height: 10px; background: #333; border-radius: 5px; margin: 4px auto; overflow: hidden; }
-.battle-hp-fill { height: 100%; background: var(--otb-success); border-radius: 5px; transition: width 0.3s; }
-.battle-hp-fill.low { background: var(--otb-danger); }
-.battle-hp-text { font-size: 0.65rem; color: var(--otb-text-muted); }
+/* HP bar enlarged: 180px wide with current/max numbers ABOVE, color-coded by % */
+.battle-hp-text {
+    font-family: var(--otb-font-heading);
+    font-size: 0.85rem;
+    color: #fff;
+    margin: 6px auto 2px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    letter-spacing: 0.5px;
+}
+.battle-hp-bar {
+    width: 180px;
+    height: 16px;
+    background: #1a1a2e;
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    margin: 2px auto 4px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+.battle-hp-fill {
+    height: 100%;
+    background: #2ecc71;
+    border-radius: 6px;
+    transition: width 0.35s ease-out, background 0.3s;
+    box-shadow: 0 0 8px rgba(46, 204, 113, 0.5);
+}
+.battle-hp-fill.mid {
+    background: #f39c12;
+    box-shadow: 0 0 8px rgba(243, 156, 18, 0.5);
+}
+.battle-hp-fill.low {
+    background: #e74c3c;
+    box-shadow: 0 0 8px rgba(231, 76, 60, 0.5);
+    animation: hp-low-pulse 1s ease-in-out infinite;
+}
+@keyframes hp-low-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
 .battle-vs { font-family: var(--otb-font-heading); font-size: 1.5rem; color: var(--game-accent); }
 .battle-type-badge {
     display: inline-block; font-size: 0.6rem; padding: 2px 8px;
@@ -520,7 +555,8 @@ html, body {
     .battle-creatures { padding: 10px 40px; height: 50%; }
     .battle-creature-emoji { font-size: 3rem; }
     .battle-creature-name { font-size: 0.75rem; }
-    .battle-hp-bar { width: 100px; height: 8px; }
+    .battle-hp-bar { width: 150px; height: 14px; }
+    .battle-hp-text { font-size: 0.75rem; margin: 4px auto 2px; }
     .battle-vs { font-size: 1.2rem; }
 
     /* Question area */
@@ -1088,4 +1124,234 @@ html, body {
 [role="button"] {
     min-height: 48px;
     min-width: 48px;
+}
+
+/* ============================================================
+   FIRE TABLET / SILK BROWSER ENHANCEMENTS
+   - Primary CTAs (Play, Battle, Deck, Zone) >= 80px
+   - Card tiles in collection/deck-build >= 100px, 16px gap
+   - Battle answer buttons >= 72px
+   - Secondary buttons >= 48px (already enforced above)
+   ============================================================ */
+
+/* Primary CTAs: oversized for kids on tablet */
+.title-play-btn { min-height: 80px; min-width: 240px; }
+.zone-card { min-height: 140px; }
+#btn-next-battle,
+#btn-attack,
+#btn-ability { min-height: 80px; min-width: 160px; font-size: 1.05rem; }
+
+/* Card tiles: bigger touch zones + 16px gap */
+.collection-grid {
+    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+}
+.creature-slot { min-height: 120px; padding: 10px; }
+.deck-slot { min-height: 110px; }
+
+/* Battle answer buttons: 72px floor for 4-year-olds */
+.answer-btn {
+    min-height: 72px;
+    font-size: 1rem;
+    padding: 14px 12px;
+}
+
+/* Voice-replay button: 64px, accent-glow, visually distinct from text */
+.question-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+.question-header-row .question-text {
+    flex: 1 1 auto;
+    margin-bottom: 0;
+    min-width: 0;
+}
+.voice-replay-btn {
+    flex: 0 0 auto;
+    min-width: 64px;
+    min-height: 64px;
+    padding: 10px 16px;
+    border: 2px solid var(--game-accent);
+    border-radius: 14px;
+    background: rgba(245, 158, 11, 0.15);
+    color: #fff;
+    font-family: var(--otb-font-body);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+}
+.voice-replay-btn:hover {
+    background: rgba(245, 158, 11, 0.3);
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.5);
+}
+.voice-replay-btn:active { transform: scale(0.94); }
+.voice-replay-btn.speaking {
+    animation: voice-replay-pulse 1s ease-in-out infinite;
+}
+@keyframes voice-replay-pulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(245, 158, 11, 0.3); }
+    50%      { box-shadow: 0 0 24px rgba(245, 158, 11, 0.7); }
+}
+
+/* Override tablet-landscape shrinks for touch targets */
+@media (max-height: 650px) and (orientation: landscape) {
+    .title-play-btn { min-height: 64px; min-width: 200px; }
+    #btn-next-battle,
+    #btn-attack,
+    #btn-ability { min-height: 64px; min-width: 130px; font-size: 0.9rem; }
+    .answer-btn { min-height: 60px; font-size: 0.9rem; padding: 10px; }
+    .voice-replay-btn { min-width: 56px; min-height: 56px; font-size: 0.7rem; padding: 8px 12px; }
+    .creature-slot { min-height: 96px; }
+    .zone-card { min-height: 110px; }
+    .collection-grid { gap: 10px; }
+}
+
+/* ============================================================
+   SUB-100MS CORRECT-ANSWER FEEDBACK
+   Screen shake on enemy + damage float fires IMMEDIATELY,
+   before the 500ms pacing delay. AudioContext-driven, no setTimeout.
+   ============================================================ */
+@keyframes enemy-shake-instant {
+    0%, 100% { transform: translateX(0); }
+    10%      { transform: translateX(-10px) rotate(-2deg); }
+    25%      { transform: translateX(12px) rotate(2deg); }
+    40%      { transform: translateX(-8px) rotate(-1deg); }
+    55%      { transform: translateX(8px) rotate(1deg); }
+    70%      { transform: translateX(-4px); }
+    85%      { transform: translateX(4px); }
+}
+.shake-instant {
+    animation: enemy-shake-instant 0.45s ease-out;
+}
+
+/* Enhanced damage-float animation (bigger, more readable for tablet) */
+@keyframes damage-float-up {
+    0%   { transform: translate(-50%, 0)    scale(0.6); opacity: 0; }
+    15%  { transform: translate(-50%, -8px) scale(1.4); opacity: 1; }
+    40%  { transform: translate(-50%, -28px) scale(1.1); opacity: 1; }
+    100% { transform: translate(-50%, -70px) scale(0.9); opacity: 0; }
+}
+.damage-number {
+    font-size: 1.8rem;
+    animation: damage-float-up 0.9s ease-out forwards;
+}
+.damage-number.crit {
+    font-size: 2.4rem;
+    color: var(--otb-coin);
+    text-shadow: 0 0 16px rgba(255, 215, 0, 0.9), 0 2px 4px rgba(0,0,0,0.7);
+}
+.damage-number.weak { font-size: 1.2rem; }
+
+/* Type-advantage glow on player attacker */
+@keyframes type-advantage-glow-kf {
+    0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+    50%      { filter: drop-shadow(0 0 18px var(--type-adv-color, #ffd700)) drop-shadow(0 0 30px var(--type-adv-color, #ffd700)); }
+}
+.type-advantage-glow {
+    animation: type-advantage-glow-kf 0.8s ease-in-out;
+}
+
+/* ============================================================
+   RARITY CELEBRATIONS (card pack reveal)
+   Common: nothing extra
+   Uncommon: small sparkle
+   Rare: bigger sparkle + scale
+   Epic: golden aura
+   Legendary: rainbow swirl
+   ============================================================ */
+.pack-card.rarity-uncommon::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 14px;
+    background: radial-gradient(circle at 50% 50%, rgba(76, 175, 80, 0.6), transparent 70%);
+    opacity: 0;
+    animation: rarity-sparkle-small 1.2s ease-out forwards;
+    pointer-events: none;
+}
+.pack-card.rarity-rare::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 16px;
+    background: radial-gradient(circle, rgba(33, 150, 243, 0.8), transparent 70%);
+    opacity: 0;
+    animation: rarity-sparkle-medium 1.4s ease-out forwards;
+    pointer-events: none;
+}
+.pack-card.rarity-epic::after {
+    content: '';
+    position: absolute;
+    inset: -12px;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle, rgba(255, 215, 0, 0.85), transparent 65%),
+        conic-gradient(from 0deg, rgba(255,215,0,0.4), rgba(156, 39, 176, 0.4), rgba(255,215,0,0.4));
+    opacity: 0;
+    animation: rarity-aura-epic 1.6s ease-out forwards;
+    pointer-events: none;
+}
+.pack-card.rarity-legendary::after {
+    content: '';
+    position: absolute;
+    inset: -16px;
+    border-radius: 20px;
+    background: conic-gradient(
+        from 0deg,
+        #ff0000, #ff9900, #ffff00, #00ff00,
+        #00ffff, #0099ff, #9900ff, #ff0099, #ff0000
+    );
+    opacity: 0;
+    filter: blur(8px);
+    animation: rarity-swirl-legendary 2s ease-out forwards;
+    pointer-events: none;
+}
+.pack-card.rarity-uncommon,
+.pack-card.rarity-rare,
+.pack-card.rarity-epic,
+.pack-card.rarity-legendary { position: relative; overflow: visible; }
+
+@keyframes rarity-sparkle-small {
+    0%   { opacity: 0; transform: scale(0.8); }
+    30%  { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 0; transform: scale(1.3); }
+}
+@keyframes rarity-sparkle-medium {
+    0%   { opacity: 0; transform: scale(0.7) rotate(0deg); }
+    30%  { opacity: 1; transform: scale(1.15) rotate(20deg); }
+    100% { opacity: 0; transform: scale(1.4) rotate(60deg); }
+}
+@keyframes rarity-aura-epic {
+    0%   { opacity: 0; transform: scale(0.6) rotate(0deg); }
+    30%  { opacity: 1; transform: scale(1.2) rotate(60deg); }
+    70%  { opacity: 0.8; transform: scale(1.3) rotate(180deg); }
+    100% { opacity: 0; transform: scale(1.5) rotate(360deg); }
+}
+@keyframes rarity-swirl-legendary {
+    0%   { opacity: 0; transform: scale(0.5) rotate(0deg); }
+    20%  { opacity: 0.9; transform: scale(1.3) rotate(180deg); }
+    50%  { opacity: 1; transform: scale(1.4) rotate(540deg); }
+    100% { opacity: 0; transform: scale(1.6) rotate(900deg); }
+}
+
+/* Tiny sparkle particles for higher rarities */
+.rarity-particle {
+    position: absolute;
+    width: 6px; height: 6px;
+    background: #fff;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: rarity-particle-burst 1.2s ease-out forwards;
+    box-shadow: 0 0 8px #fff, 0 0 14px var(--p-color, gold);
+}
+@keyframes rarity-particle-burst {
+    0%   { transform: translate(0, 0) scale(0); opacity: 1; }
+    50%  { opacity: 1; }
+    100% { transform: translate(var(--px, 30px), var(--py, -30px)) scale(1.5); opacity: 0; }
 }

@@ -54,28 +54,33 @@ const Progress = (() => {
         save(d);
     }
 
+    // Auto-Build a 5-creature deck biased toward higher rarity + type diversity.
+    // Rarity is weighted heavier than raw stats so a player's epic always
+    // beats a maxed common. Then within rarity, total stats break ties.
     function autoFillDeck() {
         const owned = Collection.getOwnedList();
         if (owned.length === 0) return;
-        // Pick top 5 by total stats, with type diversity
-        const sorted = owned.sort((a, b) => {
-            const ta = (a.stats.pwr + a.stats.grd + a.stats.spd + a.stats.mag);
-            const tb = (b.stats.pwr + b.stats.grd + b.stats.spd + b.stats.mag);
-            return tb - ta;
-        });
+        const RARITY_WEIGHT = { legendary: 50, epic: 30, rare: 18, uncommon: 8, common: 2 };
+        const scored = owned.map(c => {
+            const statTotal = (c.stats?.pwr || 0) + (c.stats?.grd || 0)
+                            + (c.stats?.spd || 0) + (c.stats?.mag || 0);
+            const rarityScore = RARITY_WEIGHT[c.rarity] || 0;
+            return { c, score: rarityScore + statTotal * 0.1 };
+        }).sort((a, b) => b.score - a.score);
+
         const deck = [];
         const usedTypes = new Set();
-        // First pass: one per type
-        for (const c of sorted) {
-            if (!usedTypes.has(c.type) && deck.length < 5) {
-                deck.push(c.id);
-                usedTypes.add(c.type);
+        // Pass 1: take the highest-scoring creature of each type (type diversity)
+        for (const entry of scored) {
+            if (!usedTypes.has(entry.c.type) && deck.length < 5) {
+                deck.push(entry.c.id);
+                usedTypes.add(entry.c.type);
             }
         }
-        // Fill remaining slots with strongest
-        for (const c of sorted) {
-            if (!deck.includes(c.id) && deck.length < 5) {
-                deck.push(c.id);
+        // Pass 2: fill remaining slots with the next-highest-scoring picks
+        for (const entry of scored) {
+            if (!deck.includes(entry.c.id) && deck.length < 5) {
+                deck.push(entry.c.id);
             }
         }
         setDeck(deck);
