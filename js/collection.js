@@ -103,15 +103,18 @@ const Collection = (() => {
     }
 
     function _rollRarity(packType, d) {
-        // Pity timer: guarantee rare after 15 packs, epic after 40
-        if (d.sinceLastRare >= 15) return 'rare';
-        if (d.sinceLastEpic >= 40) return 'epic';
+        // Pity timer: guarantee rare after 10 packs, epic after 30 (tighter than before)
+        if (d.sinceLastRare >= 10) return 'rare';
+        if (d.sinceLastEpic >= 30) return 'epic';
 
+        // Blueprint baseline: 70 / 20 / 7 / 2.5 / 0.5 for daily packs.
+        // Higher pack types tilt toward rare+ but keep legendary scarce so it
+        // remains a "moment" when one drops.
         const weights = {
-            daily:     { common: 60, uncommon: 25, rare: 10, epic: 4, legendary: 1 },
-            victory:   { common: 50, uncommon: 30, rare: 15, epic: 4, legendary: 1 },
-            boss:      { common: 20, uncommon: 35, rare: 30, epic: 12, legendary: 3 },
-            milestone: { common: 10, uncommon: 25, rare: 35, epic: 25, legendary: 5 }
+            daily:     { common: 70,  uncommon: 20, rare: 7,  epic: 2.5, legendary: 0.5 },
+            victory:   { common: 55,  uncommon: 28, rare: 12, epic: 4,   legendary: 1 },
+            boss:      { common: 25,  uncommon: 35, rare: 28, epic: 10,  legendary: 2 },
+            milestone: { common: 10,  uncommon: 25, rare: 35, epic: 25,  legendary: 5 }
         };
         const w = weights[packType] || weights.daily;
         const total = Object.values(w).reduce((a, b) => a + b, 0);
@@ -122,6 +125,21 @@ const Collection = (() => {
             if (roll <= 0) return rarity;
         }
         return 'common';
+    }
+
+    // Near-miss detection: if pity counter is one away from the threshold,
+    // signal the UI to play a "near-miss" tease before final reveal. Ethical
+    // variable-reward UX: never actually fake a near-miss roll, just surface
+    // when the next pack will trigger pity. See research/game-design/
+    // variable-reward-psychology.md section 5.
+    function getNearMissState() {
+        const d = get();
+        return {
+            rareInOne: d.sinceLastRare >= 9 && d.sinceLastRare < 10,
+            epicInOne: d.sinceLastEpic >= 29 && d.sinceLastEpic < 30,
+            packsToRare: Math.max(0, 10 - d.sinceLastRare),
+            packsToEpic: Math.max(0, 30 - d.sinceLastEpic)
+        };
     }
 
     function _pickCreatureByRarity(rarity) {
@@ -174,6 +192,7 @@ const Collection = (() => {
     return {
         get, save, addCreature, isOwned, getOwnedList, getOwnedCount,
         recordWin, openPack, getStardust, giveStarterPack, hasStarterPack,
-        getCreatureWins, isEvolved, canEvolve, evolveCreature
+        getCreatureWins, isEvolved, canEvolve, evolveCreature,
+        getNearMissState
     };
 })();

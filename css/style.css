@@ -1355,3 +1355,139 @@ html, body {
     50%  { opacity: 1; }
     100% { transform: translate(var(--px, 30px), var(--py, -30px)) scale(1.5); opacity: 0; }
 }
+
+/* ===== TYPE CHART SCREEN ===== */
+.type-chart-content {
+    padding: 12px 16px 32px;
+    overflow-y: auto;
+    flex: 1;
+    color: var(--otb-text, #fff);
+}
+.type-chart-intro p { margin: 6px 0; line-height: 1.4; }
+.type-chart-rule {
+    font-family: var(--otb-font-heading, sans-serif);
+    color: var(--game-accent, #f59e0b);
+}
+.type-chart-table-wrap {
+    overflow-x: auto;
+    margin: 12px 0;
+    padding: 4px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+}
+.type-chart-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 4px;
+    text-align: center;
+    min-width: 480px;
+}
+.type-chart-table th {
+    font-family: var(--otb-font-heading, sans-serif);
+    font-size: 0.9rem;
+    padding: 6px 4px;
+}
+.type-chart-table td {
+    background: rgba(255,255,255,0.06);
+    border-radius: 8px;
+    padding: 8px 4px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    min-width: 64px;
+    line-height: 1.2;
+}
+.type-chart-table td.tc-win {
+    background: rgba(76, 175, 80, 0.25);
+    color: #b7f5b9;
+    border: 2px solid rgba(76,175,80,0.55);
+}
+.type-chart-table td.tc-lose {
+    background: rgba(244, 67, 54, 0.22);
+    color: #ffc6c1;
+    border: 2px solid rgba(244,67,54,0.5);
+}
+.type-chart-table td.tc-neutral {
+    background: rgba(158, 158, 158, 0.18);
+    color: #e0e0e0;
+    border: 2px solid rgba(158,158,158,0.35);
+}
+.type-chart-table td .tc-sym {
+    display: block;
+    font-size: 1.25rem;
+    margin-bottom: 2px;
+}
+.type-chart-table td .tc-text {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+}
+.type-chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 8px;
+    font-size: 0.85rem;
+}
+.type-chart-legend .tc-legend-item {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+.sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0);
+    white-space: nowrap; border: 0;
+}
+
+/* "Near-miss" tease overlay on pack open */
+.near-miss-tease {
+    position: absolute;
+    top: -28px; left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    color: #1a1a2e;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-family: var(--otb-font-heading, sans-serif);
+    font-size: 0.75rem;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(245,158,11,0.6);
+    animation: near-miss-pulse 1.6s ease-out;
+    pointer-events: none;
+    white-space: nowrap;
+}
+@keyframes near-miss-pulse {
+    0%   { transform: translateX(-50%) scale(0.5); opacity: 0; }
+    20%  { transform: translateX(-50%) scale(1.15); opacity: 1; }
+    80%  { transform: translateX(-50%) scale(1); opacity: 1; }
+    100% { transform: translateX(-50%) scale(1); opacity: 0; }
+}
+
+/* Cross-game drop toast */
+.cross-game-drop-toast {
+    position: fixed;
+    top: 16px; left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #1a1a2e, #2d1b4e);
+    border: 2px solid var(--game-accent, #f59e0b);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 14px;
+    font-family: var(--otb-font-body, Nunito, sans-serif);
+    font-size: 0.95rem;
+    box-shadow: 0 6px 24px rgba(245,158,11,0.4);
+    z-index: 9999;
+    animation: drop-toast-in 0.4s ease-out, drop-toast-out 0.4s ease-in 3.6s forwards;
+    max-width: 320px;
+    text-align: center;
+}
+@keyframes drop-toast-in {
+    from { opacity: 0; transform: translate(-50%, -20px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
+}
+@keyframes drop-toast-out {
+    to { opacity: 0; transform: translate(-50%, -20px); }
+}

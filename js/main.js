@@ -247,6 +247,11 @@
         document.getElementById('btn-deck').addEventListener('click', () => { AudioSystem.playClick(); showScreen('deck'); });
         document.getElementById('btn-achievements').addEventListener('click', () => { AudioSystem.playClick(); showScreen('achievements'); });
         document.getElementById('btn-achievements-back').addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
+        // Type chart screen
+        const btnTypes = document.getElementById('btn-types');
+        if (btnTypes) btnTypes.addEventListener('click', () => { AudioSystem.playClick(); showScreen('types'); });
+        const btnTypesBack = document.getElementById('btn-types-back');
+        if (btnTypesBack) btnTypesBack.addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
         document.getElementById('btn-settings').addEventListener('click', () => { AudioSystem.playClick(); showScreen('settings'); });
         document.getElementById('btn-parent').addEventListener('click', () => { AudioSystem.playClick(); showScreen('parent'); });
         document.getElementById('btn-coll-back').addEventListener('click', () => { AudioSystem.playClick(); showScreen('title'); });
@@ -357,6 +362,32 @@
         // Ecosystem daily streak
         if (typeof OTBEcosystem !== 'undefined') OTBEcosystem.checkDailyStreak();
 
+        // Cross-game card drops: drain queue from Rhythm Blast / ThinkFast / Word Mine.
+        // Each drop awards a small pack and shows a toast on title.
+        if (typeof CrossGameDrops !== 'undefined') {
+            try {
+                const drops = CrossGameDrops.drain();
+                drops.forEach((d, i) => {
+                    setTimeout(() => {
+                        const toast = document.createElement('div');
+                        toast.className = 'cross-game-drop-toast';
+                        const srcLabel = ({
+                            'rhythm-blast': 'Rhythm Blast',
+                            'thinkfast': 'ThinkFast',
+                            'wordmine': 'Word Mine',
+                            'spidey-academy': 'Spidey Academy',
+                            'potion-lab': 'Potion Lab',
+                            'hub': 'Hub'
+                        })[d.source] || d.source;
+                        const cardCount = (d.cards || []).length;
+                        toast.textContent = '🎴 ' + cardCount + ' card' + (cardCount === 1 ? '' : 's') + ' from ' + srcLabel + '!';
+                        document.body.appendChild(toast);
+                        setTimeout(() => toast.remove(), 4400);
+                    }, 3000 + i * 1200);
+                });
+            } catch (_) {}
+        }
+
         // Splash -> Title
         setTimeout(() => {
             const splash = document.getElementById('splash');
@@ -380,6 +411,7 @@
         if (name === 'shop') _buildShopScreen();
         if (name === 'achievements') _buildAchievementsScreen();
         if (name === 'parent') ParentDashboard.open();
+        if (name === 'types' && typeof TypeChart !== 'undefined') TypeChart.render('type-chart-content');
 
         // Title screen ambient music + collection counter + streak + achievements
         if (name === 'title') {
@@ -606,6 +638,7 @@
         _battleStartTime = Date.now();
         _battleQuestionsTotal = 0;
         _battleQuestionsCorrect = 0;
+        if (window.Analytics) Analytics.battleStart({ zone: zone.id, tier: tier, deckSize: deck.length });
         _attackCueShownThisBattle = false;
         _lastQuestionSpoken = '';
         showScreen('battle');
@@ -733,6 +766,7 @@
         if (typeof OTBEcosystem !== 'undefined') {
             OTBEcosystem.recordAnswer(question.topic, question.domain, correct, QuestionBridge.getLevel(), 'creature-cards');
         }
+        if (window.Analytics) Analytics.answer(correct, { topic: question.topic, domain: question.domain, fast: fast });
 
         // Execute battle turn after brief pacing delay (0.5s if correct,
         // longer if showing explanation on wrong)
@@ -1076,6 +1110,11 @@
             questionsCorrect: _battleQuestionsCorrect,
             questionsTotal: _battleQuestionsTotal
         });
+        if (window.Analytics) Analytics.battleEnd({
+            zone: currentZone.id, tier: currentTier, won: won, turns: state.turn,
+            questionsCorrect: _battleQuestionsCorrect, questionsTotal: _battleQuestionsTotal,
+            xp: xpEarned, coins: coinsEarned, durationSec: battleDuration
+        });
 
         // Card reward on victory
         const rewardEl = document.getElementById('results-reward');
@@ -1200,6 +1239,9 @@
 
                     // Mark as evolved in save data
                     Collection.evolveCreature(creatureId);
+                    if (window.Analytics) Analytics.creatureEvolved({
+                        id: creatureId, evolvedName: base.evolvedName, rarity: base.rarity
+                    });
 
                     // Check evolution achievements
                     if (typeof Achievements !== 'undefined') {
@@ -1232,6 +1274,23 @@
         document.getElementById('pack-title').textContent = title || 'Card Pack!';
         const container = document.getElementById('pack-cards');
 
+        // Analytics: pack opened with rarity breakdown
+        if (window.Analytics) {
+            const rarityCounts = { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0 };
+            (cardIds || []).forEach(id => {
+                const c = CreatureData.getCreature(id);
+                if (c && rarityCounts[c.rarity] !== undefined) rarityCounts[c.rarity]++;
+            });
+            const highestRarity = ['legendary','epic','rare','uncommon','common']
+                .find(r => rarityCounts[r] > 0) || 'common';
+            Analytics.packOpened({
+                cardCount: (cardIds || []).length,
+                title: title || '',
+                rarities: rarityCounts,
+                highestRarity: highestRarity
+            });
+        }
+
         container.innerHTML = cardIds.map((id, i) => {
             const c = CreatureData.getCreature(id);
             const rarityColor = CreatureData.RARITIES[c?.rarity]?.color || '#999';
@@ -1244,7 +1303,34 @@
             </div>`;
         }).join('');
 
-        // Tap to reveal — fires rarity-tier celebration
+        // Near-miss tease: if the player was one pack away from a guaranteed
+        // rare/epic, surface that on a card whose actual rarity didn't hit.
+        // This is purely cosmetic; the underlying roll already happened.
+        let nearMissShownOnIdx = -1;
+        try {
+            const nm = (typeof Collection !== 'undefined' && Collection.getNearMissState)
+                ? Collection.getNearMissState() : null;
+            if (nm && (nm.packsToRare <= 2 || nm.packsToEpic <= 2)) {
+                // Find the highest-rarity card slot and tease just before it
+                const ranking = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4 };
+                let bestIdx = 0;
+                let bestRank = -1;
+                (cardIds || []).forEach((id, i) => {
+                    const c = CreatureData.getCreature(id);
+                    const rk = c ? (ranking[c.rarity] || 0) : 0;
+                    if (rk > bestRank) { bestRank = rk; bestIdx = i; }
+                });
+                if (bestRank <= ranking.uncommon) {
+                    // Reveal will be a let-down — drop a "so close!" tease
+                    nearMissShownOnIdx = bestIdx;
+                    if (window.Analytics) Analytics.nearMiss({
+                        packsToRare: nm.packsToRare, packsToEpic: nm.packsToEpic
+                    });
+                }
+            }
+        } catch (_) {}
+
+        // Tap to reveal - fires rarity-tier celebration
         container.querySelectorAll('.pack-card').forEach(card => {
             card.addEventListener('click', () => {
                 if (card.classList.contains('revealed')) return;
@@ -1258,7 +1344,20 @@
                 setTimeout(() => { card.style.transform = 'scale(1)'; }, 200);
 
                 const rarity = card.getAttribute('data-rarity') || 'common';
+                const idx = parseInt(card.getAttribute('data-idx'), 10);
                 _celebrateRarity(card, rarity);
+                if (window.Analytics) Analytics.cardRevealed({ rarity: rarity });
+
+                // Near-miss tease label, only fires once per pack
+                if (idx === nearMissShownOnIdx) {
+                    card.style.position = 'relative';
+                    const tease = document.createElement('div');
+                    tease.className = 'near-miss-tease';
+                    tease.textContent = 'So close! Almost a rare!';
+                    card.appendChild(tease);
+                    setTimeout(() => tease.remove(), 1700);
+                    nearMissShownOnIdx = -1;   // consume
+                }
             });
         });
     }
